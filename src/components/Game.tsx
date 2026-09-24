@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, Suspense } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useRef, Suspense } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 import { Track } from "./Track";
@@ -26,33 +26,10 @@ import MonacoEnvironment from "./environments/MonacoEnvironment";
 import SilverstoneEnvironment from "./environments/SilverstoneEnvironment";
 import MonzaEnvironment from "./environments/MonzaEnvironment";
 
+const PLAYER_START_Z = 4;
+const TRACK_SEGMENT_LENGTH = 400;
+
 const GameScene = () => {
-  const { setFrameloop } = useThree();
-
-  const [, setIsPaused] = useState<boolean>(false);
-
-  useEffect(() => {
-    const handlePause = (event: KeyboardEvent) => {
-      if (event.code !== "KeyP") return;
-
-      if (useGameStore.getState().phase !== "playing") return;
-
-      setIsPaused((previousPaused: boolean) => {
-        const nextPaused = !previousPaused;
-
-        setFrameloop(nextPaused ? "never" : "always");
-
-        return nextPaused;
-      });
-    };
-
-    window.addEventListener("keydown", handlePause);
-
-    return () => {
-      window.removeEventListener("keydown", handlePause);
-      setFrameloop("always");
-    };
-  }, [setFrameloop]);
   const phase = useGameStore((state: any) => state.phase);
 
   const selectedTrack = useGameStore((state: any) => state.selectedTrack);
@@ -66,6 +43,7 @@ const GameScene = () => {
   const cameraShakeRef = useRef(0);
 
   const heatHazeRef = useRef<THREE.Mesh | null>(null);
+  const movingTrackRef = useRef<THREE.Group>(null);
   const elapsedTimeRef = useRef(useGameStore.getState().elapsedTime);
   const pendingScoreRef = useRef(0);
   const lastStoreUpdateRef = useRef(0);
@@ -153,6 +131,14 @@ const GameScene = () => {
       }
     }
 
+    if (movingTrackRef.current) {
+      const playerZ = useGameStore.getState().playerZ;
+      movingTrackRef.current.position.z = THREE.MathUtils.euclideanModulo(
+        PLAYER_START_Z - playerZ,
+        TRACK_SEGMENT_LENGTH,
+      );
+    }
+
     /*
      * ==========================================
      * CAMERA
@@ -164,11 +150,13 @@ const GameScene = () => {
     state.camera.position.x = THREE.MathUtils.lerp(
       state.camera.position.x,
       laneX * 0.3,
-      0.05,
+      1 - Math.exp(-8 * delta),
     );
 
     state.camera.position.y =
       2.5 + Math.sin(state.clock.elapsedTime * 1.5) * 0.03;
+
+    state.camera.position.z = 9;
 
     state.camera.fov = THREE.MathUtils.lerp(state.camera.fov, 68, 0.03);
 
@@ -232,10 +220,10 @@ const GameScene = () => {
    */
 
   const environment =
-    selectedTrack === "monza" ? (
-      <MonzaEnvironment />
-    ) : selectedTrack === "silverstone" ? (
+    selectedTrack === "silverstone" ? (
       <SilverstoneEnvironment />
+    ) : selectedTrack === "monza" ? (
+      <MonzaEnvironment />
     ) : (
       <MonacoEnvironment />
     );
@@ -251,41 +239,49 @@ const GameScene = () => {
       {/* Environment */}
       {environment}
 
-      {/* Track */}
-      <Track />
+      {/* Moving road loop and cars fixed to the road */}
+      <group ref={movingTrackRef}>
+        <Track />
+        <group position={[0, 0, -TRACK_SEGMENT_LENGTH]}>
+          <Track />
+        </group>
+        <group position={[0, 0, -TRACK_SEGMENT_LENGTH * 2]}>
+          <Track />
+        </group>
+      </group>
+
+      {phase === "playing" && <Obstacles />}
 
       {/* Player */}
       <Suspense fallback={null}>
         <PlayerCar />
       </Suspense>
-
-      {/* Obstacles */}
-      {phase === "playing" && <Obstacles />}
-
-      {/* ====================================== */}
-      {/* POST PROCESSING */}
-      {/* ====================================== */}
+      {/* ======================================
+    POST PROCESSING
+====================================== */}
 
       {selectedTrack === "silverstone" ? (
-        /*
-         * SILVERSTONE
-         *
-         * Keep the image clean and realistic.
-         * No bloom / chromatic distortion.
-         */
         <EffectComposer multisampling={0}>
           <Vignette darkness={0.15} offset={0.2} />
         </EffectComposer>
-      ) : (
-        /*
-         * MONACO / MONZA
-         *
-         * Keep the original synthwave
-         * post-processing.
-         */
+      ) : selectedTrack === "monza" ? (
         <EffectComposer multisampling={0}>
           <Bloom
-            intensity={1}
+            intensity={0.65}
+            luminanceThreshold={0.4}
+            luminanceSmoothing={0.9}
+            mipmapBlur={false}
+            levels={4}
+          />
+
+          <Vignette darkness={0.45} offset={0.2} />
+
+          <HueSaturation saturation={0.08} hue={0.02} />
+        </EffectComposer>
+      ) : (
+        <EffectComposer multisampling={0}>
+          <Bloom
+            intensity={1.5}
             luminanceThreshold={0.2}
             luminanceSmoothing={0.9}
             mipmapBlur={false}

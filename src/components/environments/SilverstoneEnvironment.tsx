@@ -359,21 +359,8 @@ function ScenerySprite({
     if (!spriteRef.current || kind !== "tree") return;
 
     const time = state.clock.elapsedTime;
-
-    /*
-     * Gentle wind movement.
-     *
-     * Very small rotation keeps it natural.
-     */
-
     spriteRef.current.rotation.z =
       Math.sin(time * 0.7 + position[2] * 0.08) * 0.025;
-
-    /*
-     * Slight sideways movement gives the
-     * tree canopy a soft wind-blown feeling.
-     */
-
     spriteRef.current.position.x =
       position[0] + Math.sin(time * 0.55 + position[2] * 0.04) * 0.12;
   });
@@ -661,6 +648,41 @@ function Sun() {
     </mesh>
   );
 }
+function RoadsideLoop({ children }: { children: React.ReactNode }) {
+  const groupsRef = useRef<THREE.Group[]>([]);
+
+  const LOOP_LENGTH = 60;
+  const LOOP_COUNT = 10;
+  const SPEED = 35;
+
+  useFrame((_, delta) => {
+    groupsRef.current.forEach((group) => {
+      if (!group) return;
+
+      group.position.z += SPEED * delta;
+
+      if (group.position.z > LOOP_LENGTH / 2) {
+        group.position.z -= LOOP_LENGTH * LOOP_COUNT;
+      }
+    });
+  });
+
+  return (
+    <>
+      {Array.from({ length: LOOP_COUNT }, (_, index) => (
+        <group
+          key={index}
+          ref={(group) => {
+            if (group) groupsRef.current[index] = group;
+          }}
+          position={[0, 0, -index * LOOP_LENGTH]}
+        >
+          {children}
+        </group>
+      ))}
+    </>
+  );
+}
 /* =========================================================
    MAIN ENVIRONMENT
 ========================================================= */
@@ -781,41 +803,41 @@ export default function SilverstoneEnvironment() {
           
           Spread across the whole countryside.
       =================================================== */}
+      <RoadsideLoop>
+        {SHOW_TREES && (
+          <>
+            {/* CLOSE */}
 
-      {SHOW_TREES && (
-        <>
-          {/* CLOSE */}
+            <ScenerySprite kind="tree" position={[-18, 7, -10]} scale={0.55} />
+            <ScenerySprite kind="tree" position={[20, 7, -15]} scale={0.55} />
+            <ScenerySprite kind="tree" position={[-32, 7, -22]} scale={0.62} />
+            <ScenerySprite kind="tree" position={[35, 8, -27]} scale={0.58} />
+            <ScenerySprite kind="tree" position={[-50, 8, -18]} scale={0.65} />
+            <ScenerySprite kind="tree" position={[52, 8, -25]} scale={0.6} />
+            <ScenerySprite kind="tree" position={[-65, 8, -32]} scale={0.58} />
+            <ScenerySprite kind="tree" position={[67, 8, -38]} scale={0.62} />
 
-          <ScenerySprite kind="tree" position={[-18, 7, -10]} scale={0.55} />
-          <ScenerySprite kind="tree" position={[20, 7, -15]} scale={0.55} />
-          <ScenerySprite kind="tree" position={[-32, 7, -22]} scale={0.62} />
-          <ScenerySprite kind="tree" position={[35, 8, -27]} scale={0.58} />
-          <ScenerySprite kind="tree" position={[-50, 8, -18]} scale={0.65} />
-          <ScenerySprite kind="tree" position={[52, 8, -25]} scale={0.6} />
-          <ScenerySprite kind="tree" position={[-65, 8, -32]} scale={0.58} />
-          <ScenerySprite kind="tree" position={[67, 8, -38]} scale={0.62} />
+            {/* MID */}
 
-          {/* MID */}
+            <ScenerySprite kind="tree" position={[-25, 8, -65]} scale={0.6} />
+            <ScenerySprite kind="tree" position={[28, 8, -72]} scale={0.58} />
+            <ScenerySprite kind="tree" position={[-45, 8, -82]} scale={0.65} />
+            <ScenerySprite kind="tree" position={[48, 8, -90]} scale={0.62} />
+            <ScenerySprite kind="tree" position={[-63, 8, -105]} scale={0.6} />
+            <ScenerySprite kind="tree" position={[66, 8, -112]} scale={0.65} />
 
-          <ScenerySprite kind="tree" position={[-25, 8, -65]} scale={0.6} />
-          <ScenerySprite kind="tree" position={[28, 8, -72]} scale={0.58} />
-          <ScenerySprite kind="tree" position={[-45, 8, -82]} scale={0.65} />
-          <ScenerySprite kind="tree" position={[48, 8, -90]} scale={0.62} />
-          <ScenerySprite kind="tree" position={[-63, 8, -105]} scale={0.6} />
-          <ScenerySprite kind="tree" position={[66, 8, -112]} scale={0.65} />
+            {/* FAR */}
 
-          {/* FAR */}
+            <ScenerySprite kind="tree" position={[-30, 8, -130]} scale={0.58} />
+            <ScenerySprite kind="tree" position={[34, 8, -138]} scale={0.62} />
+            <ScenerySprite kind="tree" position={[-52, 8, -155]} scale={0.65} />
+            <ScenerySprite kind="tree" position={[57, 8, -162]} scale={0.6} />
+            <ScenerySprite kind="tree" position={[-68, 8, -180]} scale={0.58} />
+            <ScenerySprite kind="tree" position={[70, 8, -190]} scale={0.62} />
+          </>
+        )}
 
-          <ScenerySprite kind="tree" position={[-30, 8, -130]} scale={0.58} />
-          <ScenerySprite kind="tree" position={[34, 8, -138]} scale={0.62} />
-          <ScenerySprite kind="tree" position={[-52, 8, -155]} scale={0.65} />
-          <ScenerySprite kind="tree" position={[57, 8, -162]} scale={0.6} />
-          <ScenerySprite kind="tree" position={[-68, 8, -180]} scale={0.58} />
-          <ScenerySprite kind="tree" position={[70, 8, -190]} scale={0.62} />
-        </>
-      )}
-
-      {/* ===================================================
+        {/* ===================================================
           🌼 FLOWERS
           
           Larger watercolor flower patches are spread
@@ -824,354 +846,379 @@ export default function SilverstoneEnvironment() {
           They stay outside the barriers.
       =================================================== */}
 
-      {SHOW_FLOWERS && (
-        <>
-          {/* VERY CLOSE */}
+        {SHOW_FLOWERS && (
+          <>
+            {/* VERY CLOSE */}
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-11, 1.0, -6]}
-            scale={0.55}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-11, 1.0, -6]}
+              scale={0.55}
+            />
 
-          <ScenerySprite kind="flowers" position={[11, 1.0, -9]} scale={0.55} />
+            <ScenerySprite
+              kind="flowers"
+              position={[11, 1.0, -9]}
+              scale={0.55}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-18, 1.0, -12]}
-            scale={0.6}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-18, 1.0, -12]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[20, 1.0, -15]}
-            scale={0.58}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[20, 1.0, -15]}
+              scale={0.58}
+            />
 
-          {/* WIDE CLOSE FIELD */}
+            {/* WIDE CLOSE FIELD */}
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-30, 1.0, -18]}
-            scale={0.65}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-30, 1.0, -18]}
+              scale={0.65}
+            />
 
-          <ScenerySprite kind="flowers" position={[33, 1.0, -21]} scale={0.6} />
+            <ScenerySprite
+              kind="flowers"
+              position={[33, 1.0, -21]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-45, 1.0, -14]}
-            scale={0.62}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-45, 1.0, -14]}
+              scale={0.62}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[48, 1.0, -20]}
-            scale={0.65}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[48, 1.0, -20]}
+              scale={0.65}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-60, 1.0, -28]}
-            scale={0.6}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-60, 1.0, -28]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[63, 1.0, -32]}
-            scale={0.62}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[63, 1.0, -32]}
+              scale={0.62}
+            />
 
-          {/* SECTION 2 */}
+            {/* SECTION 2 */}
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-13, 1.0, -42]}
-            scale={0.55}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-13, 1.0, -42]}
+              scale={0.55}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[14, 1.0, -46]}
-            scale={0.58}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[14, 1.0, -46]}
+              scale={0.58}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-25, 1.0, -50]}
-            scale={0.65}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-25, 1.0, -50]}
+              scale={0.65}
+            />
 
-          <ScenerySprite kind="flowers" position={[28, 1.0, -55]} scale={0.6} />
+            <ScenerySprite
+              kind="flowers"
+              position={[28, 1.0, -55]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-42, 1.0, -47]}
-            scale={0.65}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-42, 1.0, -47]}
+              scale={0.65}
+            />
 
-          <ScenerySprite kind="flowers" position={[46, 1.0, -52]} scale={0.6} />
+            <ScenerySprite
+              kind="flowers"
+              position={[46, 1.0, -52]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-60, 1.0, -58]}
-            scale={0.62}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-60, 1.0, -58]}
+              scale={0.62}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[64, 1.0, -63]}
-            scale={0.58}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[64, 1.0, -63]}
+              scale={0.58}
+            />
 
-          {/* SECTION 3 */}
+            {/* SECTION 3 */}
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-15, 1.0, -75]}
-            scale={0.58}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-15, 1.0, -75]}
+              scale={0.58}
+            />
 
-          <ScenerySprite kind="flowers" position={[17, 1.0, -80]} scale={0.6} />
+            <ScenerySprite
+              kind="flowers"
+              position={[17, 1.0, -80]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-30, 1.0, -72]}
-            scale={0.65}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-30, 1.0, -72]}
+              scale={0.65}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[34, 1.0, -86]}
-            scale={0.62}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[34, 1.0, -86]}
+              scale={0.62}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-48, 1.0, -82]}
-            scale={0.6}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-48, 1.0, -82]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[52, 1.0, -92]}
-            scale={0.65}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[52, 1.0, -92]}
+              scale={0.65}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-65, 1.0, -96]}
-            scale={0.6}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-65, 1.0, -96]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[67, 1.0, -103]}
-            scale={0.62}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[67, 1.0, -103]}
+              scale={0.62}
+            />
 
-          {/* SECTION 4 */}
+            {/* SECTION 4 */}
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-13, 1.0, -110]}
-            scale={0.55}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-13, 1.0, -110]}
+              scale={0.55}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[15, 1.0, -116]}
-            scale={0.58}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[15, 1.0, -116]}
+              scale={0.58}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-27, 1.0, -122]}
-            scale={0.62}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-27, 1.0, -122]}
+              scale={0.62}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[31, 1.0, -127]}
-            scale={0.6}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[31, 1.0, -127]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-45, 1.0, -118]}
-            scale={0.65}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-45, 1.0, -118]}
+              scale={0.65}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[50, 1.0, -130]}
-            scale={0.6}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[50, 1.0, -130]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-62, 1.0, -138]}
-            scale={0.58}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-62, 1.0, -138]}
+              scale={0.58}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[67, 1.0, -145]}
-            scale={0.62}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[67, 1.0, -145]}
+              scale={0.62}
+            />
 
-          {/* SECTION 5 */}
+            {/* SECTION 5 */}
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-16, 1.0, -150]}
-            scale={0.58}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-16, 1.0, -150]}
+              scale={0.58}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[18, 1.0, -157]}
-            scale={0.55}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[18, 1.0, -157]}
+              scale={0.55}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-32, 1.0, -165]}
-            scale={0.65}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-32, 1.0, -165]}
+              scale={0.65}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[37, 1.0, -170]}
-            scale={0.6}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[37, 1.0, -170]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-50, 1.0, -162]}
-            scale={0.62}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-50, 1.0, -162]}
+              scale={0.62}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[55, 1.0, -178]}
-            scale={0.6}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[55, 1.0, -178]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-66, 1.0, -185]}
-            scale={0.58}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-66, 1.0, -185]}
+              scale={0.58}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[68, 1.0, -192]}
-            scale={0.62}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[68, 1.0, -192]}
+              scale={0.62}
+            />
 
-          {/* FAR END */}
+            {/* FAR END */}
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-22, 1.0, -210]}
-            scale={0.58}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-22, 1.0, -210]}
+              scale={0.58}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[24, 1.0, -215]}
-            scale={0.55}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[24, 1.0, -215]}
+              scale={0.55}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[-45, 1.0, -220]}
-            scale={0.6}
-          />
+            <ScenerySprite
+              kind="flowers"
+              position={[-45, 1.0, -220]}
+              scale={0.6}
+            />
 
-          <ScenerySprite
-            kind="flowers"
-            position={[50, 1.0, -225]}
-            scale={0.58}
-          />
-        </>
-      )}
+            <ScenerySprite
+              kind="flowers"
+              position={[50, 1.0, -225]}
+              scale={0.58}
+            />
+          </>
+        )}
 
-      {SHOW_SHEEP && (
-        <>
-          {/* ===================================================
+        {SHOW_SHEEP && (
+          <>
+            {/* ===================================================
     🐑 SHEEP
 =================================================== */}
 
-          {SHOW_SHEEP && (
-            <>
-              {/* LEFT FIELD */}
-              <ScenerySprite
-                kind="sheep"
-                position={[-15.7, 2, -10]}
-                scale={0.65}
-              />
+            {SHOW_SHEEP && (
+              <>
+                {/* LEFT FIELD */}
+                <ScenerySprite
+                  kind="sheep"
+                  position={[-15.7, 2, -10]}
+                  scale={0.65}
+                />
 
-              <ScenerySprite
-                kind="sheep"
-                position={[-38, 2, -45]}
-                scale={0.6}
-              />
+                <ScenerySprite
+                  kind="sheep"
+                  position={[-38, 2, -45]}
+                  scale={0.6}
+                />
 
-              <ScenerySprite
-                kind="sheep"
-                position={[-15, 2, -50]}
-                scale={0.55}
-              />
+                <ScenerySprite
+                  kind="sheep"
+                  position={[-15, 2, -50]}
+                  scale={0.55}
+                />
 
-              {/* RIGHT FIELD */}
-              <ScenerySprite
-                kind="sheep"
-                position={[30, 2, -15]}
-                scale={0.65}
-              />
+                {/* RIGHT FIELD */}
+                <ScenerySprite
+                  kind="sheep"
+                  position={[30, 2, -15]}
+                  scale={0.65}
+                />
 
-              <ScenerySprite kind="sheep" position={[40, 2, -25]} scale={0.6} />
+                <ScenerySprite
+                  kind="sheep"
+                  position={[40, 2, -25]}
+                  scale={0.6}
+                />
 
-              <ScenerySprite
-                kind="sheep"
-                position={[18, 2, -40]}
-                scale={0.55}
-              />
-            </>
-          )}
-        </>
-      )}
-      {/* ===================================================
+                <ScenerySprite
+                  kind="sheep"
+                  position={[18, 2, -40]}
+                  scale={0.55}
+                />
+              </>
+            )}
+          </>
+        )}
+        {/* ===================================================
     🐄 COWS — USING SHEEP COORDINATES
 =================================================== */}
 
-      {SHOW_COW && (
-        <>
-          {/* CLOSE */}
+        {SHOW_COW && (
+          <>
+            {/* CLOSE */}
 
-          <ScenerySprite kind="cow" position={[-25, 6, -30]} scale={0.85} />
+            <ScenerySprite kind="cow" position={[-25, 6, -30]} scale={0.85} />
 
-          <ScenerySprite kind="cow" position={[25, 6, -25]} scale={0.8} />
+            <ScenerySprite kind="cow" position={[25, 6, -25]} scale={0.8} />
 
-          <ScenerySprite kind="cow" position={[-51, 6, -27]} scale={0.8} />
+            <ScenerySprite kind="cow" position={[-51, 6, -27]} scale={0.8} />
 
-          <ScenerySprite kind="cow" position={[57, 6, -31]} scale={0.78} />
+            <ScenerySprite kind="cow" position={[57, 6, -31]} scale={0.78} />
 
-          {/* MID */}
+            {/* MID */}
 
-          <ScenerySprite kind="cow" position={[-29, 5.2, -62]} scale={0.75} />
+            <ScenerySprite kind="cow" position={[-29, 5.2, -62]} scale={0.75} />
 
-          <ScenerySprite kind="cow" position={[38, 5.2, -68]} scale={0.75} />
+            <ScenerySprite kind="cow" position={[38, 5.2, -68]} scale={0.75} />
 
-          {/* FAR */}
+            {/* FAR */}
 
-          <ScenerySprite kind="cow" position={[-50, 5.2, -76]} scale={0.7} />
+            <ScenerySprite kind="cow" position={[-50, 5.2, -76]} scale={0.7} />
 
-          <ScenerySprite kind="cow" position={[57, 5.2, -83]} scale={0.7} />
-        </>
-      )}
+            <ScenerySprite kind="cow" position={[57, 5.2, -83]} scale={0.7} />
+          </>
+        )}
+      </RoadsideLoop>
     </>
   );
 }

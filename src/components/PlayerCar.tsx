@@ -1,21 +1,18 @@
-import { useRef, useEffect } from "react";
+import { memo, useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { useGameStore } from "../store/gameStore";
 import * as THREE from "three";
 
 const LANE_POSITIONS = [-3.5, 0, 3.5];
-const LANE_SWITCH_DURATION = 0.15;
+const PLAYER_START_Z = 4;
 
 // Preload the Ferrari model
 useGLTF.preload("/models/car.glb");
 
-export const PlayerCar = () => {
-  const currentLaneRef = useRef(1);
+export const PlayerCar = memo(() => {
   const targetLaneRef = useRef(1);
-  const laneSwitchProgressRef = useRef(0);
-  const previousLaneRef = useRef(1);
-  const publishedLaneRef = useRef(1);
+
   const setPlayerLane = useGameStore((state: any) => state.setPlayerLane);
   const groupRef = useRef<THREE.Group>(null);
 
@@ -183,52 +180,54 @@ export const PlayerCar = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
-        if (targetLaneRef.current > 0) {
-          previousLaneRef.current = targetLaneRef.current;
-          targetLaneRef.current -= 1;
-          laneSwitchProgressRef.current = 0;
+      // Prevent browser scrolling
+      if (
+        e.key === "ArrowLeft" ||
+        e.key === "ArrowRight" ||
+        e.key.toLowerCase() === "a" ||
+        e.key.toLowerCase() === "d"
+      ) {
+        e.preventDefault();
+      }
+
+      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") {
+        const nextLane = Math.max(0, targetLaneRef.current - 1);
+        if (nextLane !== targetLaneRef.current) {
+          targetLaneRef.current = nextLane;
+          setPlayerLane(nextLane);
         }
-      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
-        if (targetLaneRef.current < 2) {
-          previousLaneRef.current = targetLaneRef.current;
-          targetLaneRef.current += 1;
-          laneSwitchProgressRef.current = 0;
+      }
+
+      if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") {
+        const nextLane = Math.min(2, targetLaneRef.current + 1);
+        if (nextLane !== targetLaneRef.current) {
+          targetLaneRef.current = nextLane;
+          setPlayerLane(nextLane);
         }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   useFrame((_state, delta) => {
-    if (laneSwitchProgressRef.current < 1) {
-      laneSwitchProgressRef.current += delta / LANE_SWITCH_DURATION;
-      if (laneSwitchProgressRef.current > 1) {
-        laneSwitchProgressRef.current = 1;
-        currentLaneRef.current = targetLaneRef.current;
-      }
-    }
+    if (!groupRef.current) return;
 
-    const t = laneSwitchProgressRef.current;
-    const smoothT = t * t * (3 - 2 * t);
-    const prevX = LANE_POSITIONS[previousLaneRef.current];
+    const car = groupRef.current;
+
     const targetX = LANE_POSITIONS[targetLaneRef.current];
-    const newX = prevX + (targetX - prevX) * smoothT;
-    if (groupRef.current) {
-      groupRef.current.position.x = newX;
-    }
+    const xSmoothing = 1 - Math.exp(-32 * delta);
 
-    if (
-      currentLaneRef.current === targetLaneRef.current &&
-      publishedLaneRef.current !== targetLaneRef.current
-    ) {
-      publishedLaneRef.current = targetLaneRef.current;
-      setPlayerLane(targetLaneRef.current);
+    car.position.x = THREE.MathUtils.lerp(car.position.x, targetX, xSmoothing);
+
+    if (Math.abs(car.position.x - targetX) < 0.001) {
+      car.position.x = targetX;
     }
   });
-
   /* return (
     <group 
       position={[currentX, 0.0, 4]} 
@@ -236,7 +235,7 @@ export const PlayerCar = () => {
       scale={[1.0, 1.0, 1.0]}
       renderOrder={1000}
     >
-      <primitive object={scene.clone()} />
+      <primitive object={scene} />
       
       {/* McLaren brake light - center red }
       <mesh position={[0, 0.35, -2.2]}>
@@ -258,7 +257,7 @@ export const PlayerCar = () => {
   return (
     <group
       ref={groupRef}
-      position={[0, 0.0, 4]}
+      position={[0, 0.0, PLAYER_START_Z]}
       rotation={[0, Math.PI, 0]}
       scale={[0.6, 0.6, 0.6]}
       renderOrder={1000}
@@ -292,4 +291,4 @@ export const PlayerCar = () => {
       />
     </group>
   );
-};
+});

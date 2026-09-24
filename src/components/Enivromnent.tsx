@@ -17,9 +17,10 @@ export const Environment = React.memo(() => {
     case "monza":
       // Temporary: use Monaco environment
       // until MonzaEnvironment is created.
-      return <MonacoEnvironment />;
+      return <MonzaEnvironment />;
 
     case "monaco":
+      return <MonacoEnvironment />;
     default:
       return <MonzaEnvironment />;
   }

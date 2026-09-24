@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -6,7 +6,6 @@ import * as THREE from "three";
 let cachedSynthwaveSkyline: THREE.CanvasTexture | null = null;
 let cachedDarkSkyline: THREE.CanvasTexture | null = null;
 let cachedStarTexture: THREE.CanvasTexture | null = null;
-
 // Create circular star texture
 const createStarTexture = () => {
   if (cachedStarTexture) return cachedStarTexture;
@@ -498,11 +497,21 @@ export const MonacoEnvironment = () => {
   const starfieldRef = useRef<THREE.Points | null>(null);
 
   const tempVecRef = useRef(new THREE.Vector3());
+  const backgroundRef = useRef<THREE.Group>(null);
+  const [skylineTexture, setSkylineTexture] =
+    useState<THREE.CanvasTexture | null>(null);
 
+  const [darkSkylineTexture, setDarkSkylineTexture] =
+    useState<THREE.CanvasTexture | null>(null);
   useEffect(() => {
-    skylineTextureRef.current = createSynthwaveSkyline();
+    const skyline = createSynthwaveSkyline();
+    const darkSkyline = createDarkSkyline();
 
-    darkSkylineTextureRef.current = createDarkSkyline();
+    skylineTextureRef.current = skyline;
+    darkSkylineTextureRef.current = darkSkyline;
+
+    setSkylineTexture(skyline);
+    setDarkSkylineTexture(darkSkyline);
 
     createStarTexture();
 
@@ -658,6 +667,16 @@ export const MonacoEnvironment = () => {
   }, []);
 
   useFrame((state: any, delta: number) => {
+    const camera = state.camera;
+
+    if (backgroundRef.current) {
+      // Keep the background behind the camera
+      backgroundRef.current.position.set(
+        camera.position.x,
+        0,
+        camera.position.z - 140,
+      );
+    }
     // Shooting stars
     shootingStarsRef.current.forEach((star: any) => {
       tempVecRef.current.copy(star.velocity).multiplyScalar(delta * 30);
@@ -697,68 +716,49 @@ export const MonacoEnvironment = () => {
 
       <directionalLight position={[10, 20, 10]} intensity={1} color="#ffffff" />
 
-      {/* Main synthwave skyline */}
-      {skylineTextureRef.current && (
-        <mesh position={[0, 28, -115]}>
-          <planeGeometry args={[280, 80]} />
+      {/* =====================================================
+    CAMERA-FOLLOWING BACKGROUND
+===================================================== */}
 
-          <meshBasicMaterial
-            map={skylineTextureRef.current}
-            transparent={false}
-          />
-        </mesh>
-      )}
+      <group ref={backgroundRef}>
+        {/* Main skyline */}
+        {skylineTexture && (
+          <mesh position={[0, 30, 0]} renderOrder={-10}>
+            <planeGeometry args={[420, 90]} />
 
-      {/* Dark background skyline */}
-      {darkSkylineTextureRef.current && (
-        <mesh position={[0, 20, -140]}>
-          <planeGeometry args={[350, 60]} />
+            <meshBasicMaterial
+              map={skylineTexture}
+              transparent={false}
+              depthWrite={false}
+              depthTest={true}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        )}
 
-          <meshBasicMaterial
-            map={darkSkylineTextureRef.current}
-            transparent={false}
-          />
-        </mesh>
-      )}
+        {/* Dark skyline */}
+        {/* {darkSkylineTexture && (
+          <mesh position={[0, 25, -35]} renderOrder={-9}>
+            <planeGeometry args={[260, 65]} />
 
-      {/* 3D moon/sun */}
-      <mesh position={[0, 45, -130]}>
-        <sphereGeometry args={[16, 32, 32]} />
+            <meshBasicMaterial
+              map={darkSkylineTexture}
+              transparent={false}
+              opacity={1}
+              depthWrite={false}
+              depthTest={true}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        )} */}
 
-        <meshBasicMaterial color="#ffffdd" />
-      </mesh>
-
-      {/* Glow halos */}
-      <mesh position={[0, 45, -130]}>
-        <sphereGeometry args={[20, 32, 32]} />
-
-        <meshBasicMaterial color="#ff88ff" transparent opacity={0.5} />
-      </mesh>
-
-      <mesh position={[0, 45, -130]}>
-        <sphereGeometry args={[26, 32, 32]} />
-
-        <meshBasicMaterial color="#ff00aa" transparent opacity={0.3} />
-      </mesh>
-
-      <mesh position={[0, 45, -130]}>
-        <sphereGeometry args={[34, 32, 32]} />
-
-        <meshBasicMaterial color="#8800ff" transparent opacity={0.15} />
-      </mesh>
-
-      <mesh position={[0, 45, -130]}>
-        <sphereGeometry args={[45, 32, 32]} />
-
-        <meshBasicMaterial color="#440088" transparent opacity={0.08} />
-      </mesh>
-
-      <pointLight
-        position={[0, 45, -130]}
-        color="#ff44aa"
-        intensity={6}
-        distance={400}
-      />
+        <pointLight
+          position={[0, 45, -25]}
+          color="#ff44aa"
+          intensity={6}
+          distance={400}
+        />
+      </group>
 
       {/* Background starfield */}
       <points ref={starfieldRef}>

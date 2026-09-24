@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { Text } from "@react-three/drei";
 
 type Vec3 = [number, number, number];
 
@@ -42,12 +43,12 @@ const TrackSilverstone = () => {
 
     /* Red */
 
-    ctx.fillStyle = "#d51f26";
+    ctx.fillStyle = "#e58fa3";
     ctx.fillRect(0, 0, 64, 32);
 
     /* White */
 
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#f6e4d4";
     ctx.fillRect(64, 0, 64, 32);
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -73,8 +74,11 @@ const TrackSilverstone = () => {
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -80]}>
         <planeGeometry args={[14, 400]} />
-
-        <meshStandardMaterial color="#414447" roughness={0.92} metalness={0} />
+        <meshStandardMaterial
+          color="#343d42"
+          roughness={0.78}
+          metalness={0.05}
+        />
       </mesh>
 
       {/* =====================================================
@@ -117,40 +121,25 @@ const TrackSilverstone = () => {
       ))}
 
       {/* =====================================================
-          LANE LINES
-      ===================================================== */}
+    BROKEN LANE LINES
+===================================================== */}
 
-      {[-3.5, 3.5].map((x) => (
-        <mesh
-          key={`lane-${x}`}
-          rotation={[-Math.PI / 2, 0, 0]}
-          position={[x, 0.028, -80]}
-        >
-          <planeGeometry args={[0.07, 400]} />
-
-          <meshStandardMaterial color="#ffffff" roughness={0.7} />
-        </mesh>
-      ))}
-
-      {/* =====================================================
-          CENTER DASHED LINE
-      ===================================================== */}
-
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.032, -200]}>
-        <planeGeometry args={[0.12, 400]} />
-
-        <meshStandardMaterial color="#ffffff" roughness={0.7} />
-
-        {/* Masking is not required here; instead the
-            center line is represented by small sections
-            below. */}
-      </mesh>
+      {[-3.5, 3.5].map((x) =>
+        Array.from({ length: 34 }).map((_, i) => (
+          <mesh
+            key={`lane-dash-${x}-${i}`}
+            rotation={[-Math.PI / 2, 0, 0]}
+            position={[x, 0.028, -i * 12 - 4]}
+          >
+            <planeGeometry args={[0.07, 5]} />
+            <meshStandardMaterial color="#ffffff" roughness={0.7} />
+          </mesh>
+        )),
+      )}
 
       {/* =====================================================
-          CENTER DASHES
-
-          Use only 20 instead of 40.
-      ===================================================== */}
+    CENTER DASHED LINE
+===================================================== */}
 
       {Array.from({ length: 20 }).map((_, i) => (
         <mesh
@@ -159,7 +148,6 @@ const TrackSilverstone = () => {
           position={[0, 0.04, -i * 20 - 10]}
         >
           <planeGeometry args={[0.12, 6]} />
-
           <meshStandardMaterial color="#ffffff" roughness={0.7} />
         </mesh>
       ))}
@@ -211,7 +199,7 @@ const TrackSilverstone = () => {
 
       <Grandstand position={[-14, 1.8, -100]} />
 
-      <Grandstand position={[14, 1.8, -100]} />
+      <Grandstand position={[14, 1.8, -100]} rotationY={Math.PI} />
 
       {/* =====================================================
           START / FINISH GANTRY
@@ -254,13 +242,29 @@ const TrackSilverstone = () => {
           />
         </mesh>
 
-        {/* White sign */}
+        {/* =====================================================
+    DGG GRID RUSH SIGN
+===================================================== */}
 
+        {/* White sign */}
         <mesh position={[0, 7.15, 0]}>
           <planeGeometry args={[11.5, 1.8]} />
-
           <meshBasicMaterial color="#ffffff" />
         </mesh>
+
+        {/* DGG GRID RUSH text */}
+        <Text
+          position={[0, 7.15, 0.02]}
+          rotation={[0, 0, 0]}
+          fontSize={0.75}
+          color="#252525"
+          anchorX="center"
+          anchorY="middle"
+          fontWeight="bold"
+          letterSpacing={0.04}
+        >
+          DGG GRID RUSH
+        </Text>
       </group>
     </group>
   );
@@ -343,42 +347,205 @@ function TrackFence({ side }: { side: -1 | 1 }) {
 }
 
 /* =========================================================
-   GRANDSTAND
+   SPECTATOR
 ========================================================= */
 
-function Grandstand({ position }: { position: Vec3 }) {
+function Spectator({ position, color }: { position: Vec3; color: string }) {
   return (
     <group position={position}>
-      {/* Main structure */}
-
-      <mesh>
-        <boxGeometry args={[8, 3.5, 32]} />
-
-        <meshStandardMaterial color="#e4e5e6" roughness={0.9} />
+      {/* Head */}
+      <mesh position={[0, 0.65, 0]}>
+        <sphereGeometry args={[0.16, 8, 8]} />
+        <meshStandardMaterial color="#b98265" roughness={0.9} />
       </mesh>
 
-      {/* Seating */}
+      {/* Body */}
+      <mesh position={[0, 0.32, 0]}>
+        <boxGeometry args={[0.28, 0.5, 0.18]} />
+        <meshStandardMaterial color={color} roughness={0.85} />
+      </mesh>
 
-      {Array.from({
-        length: 5,
-      }).map((_, i) => (
-        <mesh key={`seat-${i}`} position={[0, 1 + i * 0.55, 0]}>
-          <boxGeometry args={[8.5, 0.3, 30]} />
+      {/* Left leg */}
+      <mesh position={[-0.08, 0.03, 0]}>
+        <boxGeometry args={[0.09, 0.35, 0.12]} />
+        <meshStandardMaterial color="#292d35" roughness={0.9} />
+      </mesh>
+
+      {/* Right leg */}
+      <mesh position={[0.08, 0.03, 0]}>
+        <boxGeometry args={[0.09, 0.35, 0.12]} />
+        <meshStandardMaterial color="#292d35" roughness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
+/* =========================================================
+   STADIUM GRANDSTAND
+========================================================= */
+
+function Grandstand({
+  position,
+  rotationY = 0,
+}: {
+  position: Vec3;
+  rotationY?: number;
+}) {
+  const ROWS = 7;
+  const SEATS_PER_ROW = 9;
+
+  const spectatorColors = [
+    "#263f63",
+    "#b83b43",
+    "#e1d5b8",
+    "#426b58",
+    "#6c477a",
+    "#d18b45",
+    "#384b52",
+  ];
+
+  return (
+    <group
+      position={[position[0], -0.3, position[2]]}
+      rotation={[0, Math.PI / 2 + rotationY, 0]}
+    >
+      {/* =====================================================
+          GROUND FOUNDATION
+      ===================================================== */}
+
+      <mesh position={[0, -0.15, -7]}>
+        <boxGeometry args={[9.5, 0.3, 18]} />
+
+        <meshStandardMaterial color="#858581" roughness={0.95} />
+      </mesh>
+
+      {/* =====================================================
+          STEPPED STADIUM SEATING
+      ===================================================== */}
+
+      {Array.from({ length: ROWS }).map((_, row) => {
+        const rowHeight = row * 0.55;
+        const rowDepth = -row * 2.1;
+
+        return (
+          <group key={`row-${row}`} position={[0, rowHeight, rowDepth]}>
+            {/* Concrete step */}
+            <mesh position={[0, 0.25, 0]}>
+              <boxGeometry args={[8.5, 0.5, 2.3]} />
+
+              <meshStandardMaterial color="#aaa9a3" roughness={0.95} />
+            </mesh>
+
+            {/* Seat row */}
+            <mesh position={[0, 0.58, 0.35]}>
+              <boxGeometry args={[7.8, 0.18, 0.55]} />
+
+              <meshStandardMaterial color="#344d68" roughness={0.8} />
+            </mesh>
+
+            {/* Seat back */}
+            <mesh position={[0, 0.85, 0.58]}>
+              <boxGeometry args={[7.8, 0.45, 0.12]} />
+
+              <meshStandardMaterial color="#293d54" roughness={0.85} />
+            </mesh>
+
+            {/* =================================================
+                SPECTATORS IN EACH ROW
+            ================================================= */}
+
+            {Array.from({
+              length: SEATS_PER_ROW,
+            }).map((_, seat) => {
+              const x = -3.15 + seat * 0.79;
+
+              return (
+                <Spectator
+                  key={`spectator-${row}-${seat}`}
+                  position={[x, 0.65, 0.1]}
+                  color={
+                    spectatorColors[(row * 3 + seat) % spectatorColors.length]
+                  }
+                />
+              );
+            })}
+          </group>
+        );
+      })}
+
+      {/* =====================================================
+          SIDE CONCRETE SUPPORTS
+      ===================================================== */}
+
+      {[-4.5, 4.5].map((x, i) => (
+        <mesh key={`side-support-${i}`} position={[x, 2.1, -7]}>
+          <boxGeometry args={[0.45, 4.5, 17]} />
+
+          <meshStandardMaterial color="#858581" roughness={0.95} />
+        </mesh>
+      ))}
+
+      {/* =====================================================
+          REAR WALKWAY
+      ===================================================== */}
+
+      <mesh position={[0, 4.1, -15]}>
+        <boxGeometry args={[9.5, 0.35, 1.5]} />
+
+        <meshStandardMaterial color="#999892" roughness={0.95} />
+      </mesh>
+
+      {/* =====================================================
+          ROOF SUPPORT COLUMNS
+      ===================================================== */}
+
+      {[-3.9, 3.9].map((x, i) => (
+        <mesh key={`roof-column-${i}`} position={[x, 5.2, -14.5]}>
+          <boxGeometry args={[0.3, 9, 0.3]} />
 
           <meshStandardMaterial
-            color={i % 2 === 0 ? "#c8c9ca" : "#aaabad"}
-            roughness={0.9}
+            color="#555b60"
+            metalness={0.65}
+            roughness={0.55}
           />
         </mesh>
       ))}
 
-      {/* Roof */}
+      {/* =====================================================
+          STADIUM ROOF
+      ===================================================== */}
 
-      <mesh position={[0, 4.5, 0]}>
-        <boxGeometry args={[9, 0.3, 33]} />
+      <mesh position={[0, 9.2, -7]} rotation={[0.08, 0, 0]}>
+        <boxGeometry args={[10.5, 0.3, 18]} />
 
-        <meshStandardMaterial color="#eeeeee" roughness={0.85} />
+        <meshStandardMaterial
+          color="#777b7c"
+          metalness={0.25}
+          roughness={0.85}
+        />
       </mesh>
+
+      {/* =====================================================
+          FRONT SAFETY RAILING
+      ===================================================== */}
+
+      <mesh position={[0, 4.1, 2.2]}>
+        <boxGeometry args={[8.5, 0.08, 0.08]} />
+
+        <meshStandardMaterial color="#454545" metalness={0.8} roughness={0.4} />
+      </mesh>
+
+      {[-3.8, 0, 3.8].map((x, i) => (
+        <mesh key={`railing-post-${i}`} position={[x, 3.7, 2.2]}>
+          <boxGeometry args={[0.08, 0.8, 0.08]} />
+
+          <meshStandardMaterial
+            color="#454545"
+            metalness={0.8}
+            roughness={0.4}
+          />
+        </mesh>
+      ))}
     </group>
   );
 }

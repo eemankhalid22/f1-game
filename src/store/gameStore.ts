@@ -10,6 +10,7 @@ interface GameState {
   elapsedTime: number
   obstacleSpeed: number
   playerLane: number
+  playerZ: number
   position: number
   totalRacers: number
   currentLap: number
@@ -30,6 +31,7 @@ interface GameActions {
   setPhase: (phase: 'menu' | 'playing' | 'gameover') => void
   setObstacleSpeed: (speed: number) => void
   setPlayerLane: (lane: number) => void
+  setPlayerZ: (z: number) => void
   incrementDodgeCount: () => void
   setPosition: (position: number) => void
   setCurrentLap: (lap: number) => void
@@ -42,6 +44,7 @@ type GameStore = GameState & GameActions
 
 const INITIAL_SPEED = 400
 const INITIAL_LIVES = 3
+const INITIAL_PLAYER_Z = 4
 
 export const useGameStore = create<GameStore>((set: any) => ({
   phase: 'menu',
@@ -53,6 +56,7 @@ export const useGameStore = create<GameStore>((set: any) => ({
   elapsedTime: 0,
   obstacleSpeed: 50,
   playerLane: 1,
+  playerZ: INITIAL_PLAYER_Z,
   position: 9,
   totalRacers: 12,
   currentLap: 1,
@@ -71,6 +75,7 @@ export const useGameStore = create<GameStore>((set: any) => ({
       elapsedTime: 0,
       obstacleSpeed: 60,
       playerLane: 1,
+      playerZ: INITIAL_PLAYER_Z,
       position: 9,
       totalRacers: 12,
       currentLap: 1,
@@ -123,6 +128,11 @@ export const useGameStore = create<GameStore>((set: any) => ({
   setPlayerLane: (lane: number) =>
     set({
       playerLane: lane,
+    }),
+
+  setPlayerZ: (z: number) =>
+    set({
+      playerZ: z,
     }),
 
   incrementDodgeCount: () =>
