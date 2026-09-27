@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
-import { Flag, Gauge, Trophy } from "lucide-react";
+import { Flag, Trophy } from "lucide-react";
 import React from "react";
 
 import { useGameStore } from "../store/gameStore";
+import { supabase } from "../lib/supabase";
+import { ProgressScreen } from "./ProgressScreen";
 
 const TRACKS = [
   {
@@ -27,17 +29,24 @@ const TRACKS = [
 
 export const StartScreen = React.memo(() => {
   const selectedTrack = useGameStore((state: any) => state.selectedTrack);
+
   const setTrack = useGameStore((state: any) => state.setTrack);
+
   const startGame = useGameStore((state: any) => state.startGame);
 
-  return (
-    <div className="fixed inset-0 z-20 flex items-center justify-center overflow-hidden bg-[#080808]">
-      {/* ====================================================== */}
-      {/* BACKGROUND */}
-      {/* ====================================================== */}
+  const [showProgress, setShowProgress] = React.useState(false);
 
-      <div className="pointer-events-none absolute inset-0">
-        {/* Subtle horizontal timing lines */}
+  if (showProgress) {
+    return <ProgressScreen onBack={() => setShowProgress(false)} />;
+  }
+
+  return (
+    <div className="start-screen fixed inset-0 z-20 overflow-y-auto overflow-x-hidden bg-[#080808]">
+      {/* =========================================================
+          BACKGROUND
+      ========================================================= */}
+      <div className="pointer-events-none fixed inset-0">
+        {/* Horizontal grid */}
         <div
           className="absolute inset-0 opacity-[0.035]"
           style={{
@@ -47,7 +56,7 @@ export const StartScreen = React.memo(() => {
           }}
         />
 
-        {/* Carbon texture */}
+        {/* Diagonal texture */}
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -56,291 +65,285 @@ export const StartScreen = React.memo(() => {
           }}
         />
 
-        {/* Red ambient accent */}
-        <div className="absolute -left-40 -top-40 h-[600px] w-[600px] rounded-full bg-[#e10600]/10 blur-[150px]" />
+        {/* Red glow */}
+        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#e10600]/10 blur-[150px] sm:h-[600px] sm:w-[600px]" />
 
         {/* Bottom line */}
-        <div className="absolute bottom-12 left-0 right-0 h-px bg-white/5" />
+        <div className="absolute bottom-8 left-0 right-0 h-px bg-white/5 sm:bottom-12" />
       </div>
 
-      {/* ====================================================== */}
-      {/* CONTENT */}
-      {/* ====================================================== */}
-
-      <div className="relative w-full max-w-6xl px-6 py-10">
-        {/* ================================================== */}
-        {/* HEADER */}
-        {/* ================================================== */}
-
+      {/* =========================================================
+          MAIN CONTENT
+      ========================================================= */}
+      <div className="start-screen-content relative mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center px-3 py-3 sm:px-6 sm:py-10">
+        {/* =======================================================
+            HEADER
+        ======================================================= */}
         <motion.div
-          initial={{ opacity: 0, y: -30 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-12"
+          transition={{ duration: 0.5 }}
+          className="start-screen-header mb-3 sm:mb-10"
         >
-          {/* Race weekend label */}
-          <div className="mb-5 flex items-center gap-3">
-            <div className="h-2 w-2 bg-[#e10600]" />
+          {/* Small top label */}
+          <div className="mb-2 flex items-center gap-1.5 sm:mb-5 sm:gap-3">
+            <div className="h-1 w-1 bg-[#e10600] sm:h-2 sm:w-2" />
 
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">
+            <span className="text-[6px] font-bold uppercase tracking-[0.15em] text-white/50 sm:text-[10px]">
               DGG Formula Racing
             </span>
 
-            <div className="h-px w-16 bg-white/10" />
+            <div className="h-px w-5 bg-white/10 sm:w-16" />
 
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/25">
+            <span className="text-[6px] uppercase tracking-[0.12em] text-white/25 sm:text-[10px]">
               Race Selection
             </span>
           </div>
 
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          {/* Header */}
+          <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
             <div>
-              <h1 className="text-6xl font-black uppercase italic leading-[0.82] tracking-[-0.06em] text-white sm:text-7xl md:text-8xl">
+              <h1 className="text-3xl font-black uppercase italic leading-[0.82] tracking-[-0.06em] text-white sm:text-7xl md:text-8xl">
                 Choose
                 <br />
                 <span className="text-[#e10600]">Circuit</span>
               </h1>
 
-              <p className="mt-5 max-w-md text-xs uppercase tracking-[0.18em] text-white/35">
+              <p className="mt-2 max-w-md text-[7px] uppercase tracking-[0.12em] text-white/35 sm:mt-5 sm:text-xs sm:tracking-[0.18em]">
                 Select your circuit and prepare for lights out.
               </p>
             </div>
 
-            {/* Session information */}
+            {/* Desktop only */}
             <div className="hidden text-right md:block">
-              <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-white/20">
                 Session
               </div>
 
-              <div className="mt-1 text-sm font-black uppercase italic text-white">
+              <div className="mt-1 text-sm font-bold uppercase tracking-widest text-white/50">
                 Race
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* ================================================== */}
-        {/* TRACKS */}
-        {/* ================================================== */}
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {/* =======================================================
+            TRACK SELECTION
+        ======================================================= */}
+        <div className="start-screen-tracks grid grid-cols-3 gap-1.5 sm:gap-4">
           {TRACKS.map((track, index) => {
             const selected = selectedTrack === track.id;
 
             return (
               <motion.button
                 key={track.id}
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: index * 0.12,
-                  duration: 0.5,
-                }}
                 onClick={() => setTrack(track.id)}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  duration: 0.4,
+                  delay: index * 0.08,
+                }}
+                whileTap={{
+                  scale: 0.98,
+                }}
                 className={`
-                  group relative overflow-hidden text-left
-                  transition-all duration-300
+                  group
+                  relative
+                  overflow-hidden
+                  border
+                  text-left
+                  transition-all
+                  duration-300
                   ${
                     selected
-                      ? "bg-white text-black"
-                      : "border border-white/10 bg-white/[0.035] text-white hover:border-white/25 hover:bg-white/[0.06]"
+                      ? "border-[#e10600] bg-[#e10600]/10"
+                      : "border-white/10 bg-white/[0.03] hover:border-white/20"
                   }
                 `}
               >
                 {/* Selected red strip */}
                 {selected && (
-                  <motion.div
-                    layoutId="track-selection"
-                    className="absolute left-0 top-0 h-full w-1 bg-[#e10600]"
-                  />
+                  <div className="absolute left-0 top-0 h-full w-[2px] bg-[#e10600] sm:w-1" />
                 )}
 
-                {/* Top bar */}
-                <div
-                  className={`
-                    flex items-center justify-between border-b px-5 py-3
-                    ${selected ? "border-black/10" : "border-white/10"}
-                  `}
-                >
-                  <span
-                    className={`
-                      text-[9px] font-bold uppercase tracking-[0.25em]
-                      ${selected ? "text-black/40" : "text-white/30"}
-                    `}
-                  >
-                    Circuit {String(index + 1).padStart(2, "0")}
-                  </span>
+                {/* =================================================
+                    CARD TOP
+                ================================================= */}
+                <div className="flex items-center justify-between border-b border-white/10 px-2 py-1.5 sm:px-5 sm:py-3">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Flag size={8} className="text-white/30 sm:h-3 sm:w-3" />
 
-                  <span className="text-xl">{track.flag}</span>
+                    <span className="text-[5px] uppercase tracking-[0.12em] text-white/30 sm:text-[8px]">
+                      Circuit
+                    </span>
+                  </div>
+
+                  <span className="text-sm sm:text-xl">{track.flag}</span>
                 </div>
 
-                {/* Track name */}
-                <div className="px-5 pb-5 pt-6">
-                  <h2
-                    className={`
-                      text-3xl font-black uppercase italic leading-none tracking-[-0.03em]
-                      ${selected ? "text-black" : "text-white"}
-                    `}
-                  >
+                {/* =================================================
+                    TRACK NAME
+                ================================================= */}
+                <div className="px-2 pb-2 pt-2 sm:px-5 sm:pb-4 sm:pt-4">
+                  <h2 className="truncate text-[11px] font-black italic tracking-tight text-white sm:text-3xl">
                     {track.name}
                   </h2>
 
-                  <div
-                    className={`
-                      mt-2 text-[9px] font-bold uppercase tracking-[0.2em]
-                      ${selected ? "text-black/40" : "text-white/30"}
-                    `}
-                  >
-                    {track.id === "monaco"
-                      ? "Street Circuit"
-                      : track.id === "silverstone"
-                        ? "Grand Prix Circuit"
-                        : "High Speed Circuit"}
-                  </div>
+                  <p className="mt-1 text-[5px] uppercase leading-tight tracking-[0.08em] text-white/30 sm:mt-2 sm:text-[9px] sm:tracking-[0.12em]">
+                    {track.id === "monaco" && "Street circuit • Monte Carlo"}
+
+                    {track.id === "silverstone" &&
+                      "Classic circuit • United Kingdom"}
+
+                    {track.id === "monza" && "High speed circuit • Italy"}
+                  </p>
                 </div>
 
-                {/* Stats */}
-                <div
-                  className={`
-                    border-t px-5 py-4
-                    ${
-                      selected
-                        ? "border-black/10 bg-black/[0.025]"
-                        : "border-white/10 bg-black/10"
-                    }
-                  `}
-                >
-                  {/* Speed */}
-                  <div className="mb-4 flex items-center justify-between">
-                    <div
-                      className={`
-                        flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.15em]
-                        ${selected ? "text-black/40" : "text-white/35"}
-                      `}
-                    >
-                      <Gauge size={13} />
-                      Difficulty
-                    </div>
-
-                    <div className="flex gap-1">
-                      {[1, 2, 3].map((level) => (
-                        <div
-                          key={level}
-                          className={`
-                            h-1.5 w-7
-                            ${
-                              level <= track.difficulty
-                                ? "bg-[#e10600]"
-                                : selected
-                                  ? "bg-black/10"
-                                  : "bg-white/10"
-                            }
-                          `}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Track type */}
+                {/* =================================================
+                    STATS
+                ================================================= */}
+                <div className="border-t border-white/10 px-2 py-1.5 sm:px-5 sm:py-4">
                   <div className="flex items-center justify-between">
-                    <div
-                      className={`
-                        flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.15em]
-                        ${selected ? "text-black/40" : "text-white/35"}
-                      `}
-                    >
-                      <Flag size={13} />
-                      Type
+                    {/* Difficulty */}
+                    <div>
+                      <div className="mb-1 text-[5px] uppercase tracking-wider text-white/30 sm:mb-2 sm:text-[8px]">
+                        Difficulty
+                      </div>
+
+                      <div className="flex gap-[2px] sm:gap-1">
+                        {[1, 2, 3].map((level) => (
+                          <div
+                            key={level}
+                            className={`
+                              h-0.5
+                              w-2
+                              sm:h-1.5
+                              sm:w-7
+                              ${
+                                level <= track.difficulty
+                                  ? "bg-[#e10600]"
+                                  : "bg-white/10"
+                              }
+                            `}
+                          />
+                        ))}
+                      </div>
                     </div>
 
-                    <span
-                      className={`
-                        text-[9px] font-black uppercase tracking-[0.12em]
-                        ${selected ? "text-black" : "text-white"}
-                      `}
-                    >
-                      {track.id === "monaco"
-                        ? "Street"
-                        : track.id === "silverstone"
-                          ? "Classic"
-                          : "High Speed"}
-                    </span>
+                    {/* Type */}
+                    <div className="text-right">
+                      <div className="mb-1 text-[5px] uppercase tracking-wider text-white/30 sm:mb-2 sm:text-[8px]">
+                        Type
+                      </div>
+
+                      <div className="text-[5px] uppercase tracking-widest text-white/50 sm:text-[8px]">
+                        {track.id === "monza"
+                          ? "High Speed"
+                          : track.id === "monaco"
+                            ? "Street"
+                            : "Grand Prix"}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Selected indicator */}
+                {/* =================================================
+                    SELECTED INDICATOR
+                ================================================= */}
                 {selected && (
-                  <div className="absolute right-4 top-4 flex items-center gap-2">
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#e10600]">
+                  <div className="absolute right-1.5 top-1.5 flex items-center gap-1 sm:right-3 sm:top-3 sm:gap-2">
+                    <span className="h-1 w-1 animate-pulse bg-[#e10600] sm:h-1.5 sm:w-1.5" />
+
+                    <span className="hidden text-[7px] font-bold uppercase tracking-widest text-[#e10600] sm:block">
                       Selected
                     </span>
-
-                    <span className="h-1.5 w-1.5 bg-[#e10600]" />
                   </div>
-                )}
-
-                {/* Hover diagonal */}
-                {!selected && (
-                  <div className="pointer-events-none absolute -right-20 top-0 h-full w-32 -skew-x-[25deg] bg-white/[0.025] transition-transform duration-500 group-hover:translate-x-[-25px]" />
                 )}
               </motion.button>
             );
           })}
         </div>
 
-        {/* ================================================== */}
-        {/* START SECTION */}
-        {/* ================================================== */}
-
+        {/* =======================================================
+            ACTIONS
+        ======================================================= */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="mt-8"
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            duration: 0.5,
+            delay: 0.35,
+          }}
+          className="start-screen-actions mt-2 sm:mt-8"
         >
+          {/* START RACE */}
           <button
             onClick={startGame}
-            className="group relative flex h-16 w-full items-center justify-between overflow-hidden bg-[#e10600] px-7 text-left text-white transition-colors duration-200 hover:bg-[#c90500]"
+            className="group flex h-10 w-full items-center justify-between border border-[#e10600] bg-[#e10600] px-3 text-white transition-all duration-300 hover:bg-[#b80500] sm:h-16 sm:px-7"
           >
-            <div className="relative z-10 flex items-center gap-4">
-              <Trophy size={20} strokeWidth={2.5} />
+            {/* Left */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Trophy size={13} className="sm:h-5 sm:w-5" />
 
-              <div>
-                <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/60">
-                  Lights Out
+              <div className="text-left">
+                <div className="text-[9px] font-black uppercase tracking-[0.12em] sm:text-sm">
+                  Start Race
                 </div>
 
-                <div className="text-sm font-black uppercase italic tracking-[0.15em]">
-                  Start Race
+                <div className="text-[6px] uppercase tracking-[0.1em] text-white/60 sm:text-[10px]">
+                  Lights out
                 </div>
               </div>
             </div>
 
-            <div className="relative z-10 flex items-center gap-4">
-              <span className="hidden text-[8px] font-bold uppercase tracking-[0.2em] text-white/50 sm:block">
-                {TRACKS.find((track) => track.id === selectedTrack)?.name}
-              </span>
-
-              <span className="text-2xl font-black transition-transform duration-200 group-hover:translate-x-1">
-                →
-              </span>
-            </div>
-
-            {/* Diagonal racing stripe */}
-            <div className="absolute right-24 top-0 h-full w-28 -skew-x-[25deg] bg-white/[0.08] transition-transform duration-500 group-hover:translate-x-5" />
+            {/* Arrow */}
+            <span className="text-base transition-transform duration-300 group-hover:translate-x-1 sm:text-2xl">
+              →
+            </span>
           </button>
 
-          {/* Controls */}
-          <div className="mt-5 flex items-center justify-center gap-4">
-            <div className="h-px w-8 bg-white/10" />
-
-            <span className="text-[8px] font-bold uppercase tracking-[0.25em] text-white/25">
-              ← → Select Circuit
-            </span>
-
-            <div className="h-px w-8 bg-white/10" />
+          {/* Keyboard hint */}
+          <div className="mt-1.5 flex items-center justify-center gap-2 text-[6px] uppercase tracking-[0.12em] text-white/20 sm:mt-4 sm:text-[9px]">
+            <span>←</span>
+            <span>→</span>
+            <span>Select Circuit</span>
           </div>
         </motion.div>
+
+        {/* =======================================================
+            VIEW PROGRESS
+        ======================================================= */}
+        <button
+          onClick={() => setShowProgress(true)}
+          className="mt-1.5 flex h-8 w-full items-center justify-center border border-white/10 bg-white/[0.03] text-[7px] font-bold uppercase tracking-[0.15em] text-white/50 transition hover:border-white/20 hover:text-white sm:mt-3 sm:h-12 sm:text-xs"
+        >
+          View Progress
+        </button>
+
+        {/* =======================================================
+            LOGOUT
+        ======================================================= */}
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+          }}
+          className="mx-auto mt-2 mb-1 flex h-7 items-center justify-center border border-[#e10600]/60 bg-[#e10600]/10 px-4 text-[7px] font-bold uppercase tracking-[0.15em] text-[#e10600] transition hover:bg-[#e10600] hover:text-white sm:mt-4 sm:h-9 sm:px-6 sm:text-[9px]"
+        >
+          LOGOUT
+        </button>
       </div>
     </div>
   );

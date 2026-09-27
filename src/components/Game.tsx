@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
+
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -29,6 +30,12 @@ import MonzaEnvironment from "./environments/MonzaEnvironment";
 const PLAYER_START_Z = 4;
 const TRACK_SEGMENT_LENGTH = 400;
 
+/*
+ * ============================================================
+ * GAME SCENE
+ * ============================================================
+ */
+
 const GameScene = () => {
   const phase = useGameStore((state: any) => state.phase);
 
@@ -41,32 +48,52 @@ const GameScene = () => {
   const playerLane = useGameStore((state: any) => state.playerLane);
 
   const cameraShakeRef = useRef(0);
+  const previousLivesRef = useRef(lives);
 
   const heatHazeRef = useRef<THREE.Mesh | null>(null);
+
   const movingTrackRef = useRef<THREE.Group>(null);
+
   const elapsedTimeRef = useRef(useGameStore.getState().elapsedTime);
+
   const pendingScoreRef = useRef(0);
+
   const lastStoreUpdateRef = useRef(0);
 
   /*
-   * ==========================================
+   * ============================================================
    * GAME LOOP
-   * ==========================================
+   * ============================================================
    */
 
   useFrame((state: any, delta: number) => {
     /*
-     * ------------------------------
+     * ==========================================================
+     * COLLISION CAMERA SHAKE
+     * ==========================================================
+     */
+
+    if (lives < previousLivesRef.current) {
+      cameraShakeRef.current = 1.4;
+    }
+
+    previousLivesRef.current = lives;
+
+    /*
+     * ==========================================================
      * GAMEPLAY
-     * ------------------------------
+     * ==========================================================
      */
 
     if (phase === "playing") {
       const newElapsedTime = elapsedTimeRef.current + delta;
+
       elapsedTimeRef.current = newElapsedTime;
 
       /*
+       * --------------------------------------------------------
        * SPEED LEVEL SYSTEM
+       * --------------------------------------------------------
        */
 
       let dynamicObstacleSpeed = 15;
@@ -104,26 +131,39 @@ const GameScene = () => {
       }
 
       /*
+       * --------------------------------------------------------
        * APPLY SPEED
+       * --------------------------------------------------------
        */
 
       pendingScoreRef.current += delta * dynamicObstacleSpeed * 2;
 
-      // HUD and obstacle consumers do not need a store notification every frame.
+      /*
+       * Update store every 0.1 seconds instead of every frame.
+       */
+
       if (state.clock.elapsedTime - lastStoreUpdateRef.current >= 0.1) {
         lastStoreUpdateRef.current = state.clock.elapsedTime;
+
         const currentScore = useGameStore.getState().score;
+
         useGameStore.setState({
           elapsedTime: newElapsedTime,
+
           obstacleSpeed: dynamicObstacleSpeed,
+
           score: currentScore + Math.round(pendingScoreRef.current),
+
           speed: Math.round(180 + dynamicObstacleSpeed * 25),
         });
+
         pendingScoreRef.current = 0;
       }
 
       /*
+       * --------------------------------------------------------
        * GAME OVER
+       * --------------------------------------------------------
        */
 
       if (lives <= 0) {
@@ -131,8 +171,15 @@ const GameScene = () => {
       }
     }
 
+    /*
+     * ==========================================================
+     * MOVING TRACK
+     * ==========================================================
+     */
+
     if (movingTrackRef.current) {
       const playerZ = useGameStore.getState().playerZ;
+
       movingTrackRef.current.position.z = THREE.MathUtils.euclideanModulo(
         PLAYER_START_Z - playerZ,
         TRACK_SEGMENT_LENGTH,
@@ -140,51 +187,174 @@ const GameScene = () => {
     }
 
     /*
-     * ==========================================
-     * CAMERA
-     * ==========================================
+     * ==========================================================
+     * RESPONSIVE CAMERA
+     * ==========================================================
+     *
+     * Desktop:
+     * - Original cinematic framing
+     *
+     * Mobile:
+     * - Camera follows player's lane
+     * - Camera moves farther back
+     * - Camera looks lower
+     * - Car stays inside portrait viewport
      */
 
     const laneX = playerLane === 0 ? -4 : playerLane === 1 ? 0 : 4;
 
-    state.camera.position.x = THREE.MathUtils.lerp(
-      state.camera.position.x,
-      laneX * 0.3,
-      1 - Math.exp(-8 * delta),
-    );
+    const screenWidth = state.size.width;
+
+    const screenHeight = state.size.height;
+
+    const aspect = screenWidth / screenHeight;
+
+    /*
+     * Portrait / narrow mobile detection.
+     *
+     * This catches phones even when their
+     * CSS width is slightly above 640px.
+     */
+
+    const isMobile = screenWidth <= 768 || aspect <= 0.85;
+
+    /*
+     * Extremely narrow portrait screens.
+     */
+
+    const isVeryNarrow = aspect <= 0.6;
+
+    /*
+     * Camera settings.
+     */
+
+    const mobileCameraX = isVeryNarrow ? 0.16 : 0.12;
+    const cameraFollowAmount = isMobile ? mobileCameraX : 0.3;
+
+    /*
+     * Desktop camera.
+     */
+
+    const desktopCameraY = 2.5;
+    const desktopCameraZ = 9;
+    const desktopTargetY = 0.8;
+    const desktopTargetZ = -20;
+    const desktopFov = 68;
+
+    /*
+     * Mobile camera.
+     *
+     * Moving farther back gives the
+     * portrait screen more usable width.
+     */
+
+    const mobileCameraY = isVeryNarrow ? 2.15 : 2.3;
+
+    const mobileCameraZ = isVeryNarrow ? 12.5 : 11.5;
+
+    const mobileTargetY = isVeryNarrow ? 0.25 : 0.35;
+
+    const mobileTargetZ = isVeryNarrow ? -14 : -16;
+
+    const mobileFov = isVeryNarrow ? 74 : 72;
+
+    /*
+     * Select camera configuration.
+     */
+
+    const targetCameraX = laneX * cameraFollowAmount;
+
+    const targetCameraY = isMobile ? mobileCameraY : desktopCameraY;
+
+    const targetCameraZ = isMobile ? mobileCameraZ : desktopCameraZ;
+
+    const targetLookX = laneX * (isMobile ? mobileCameraX : 0.1);
+
+    const targetLookY = isMobile ? mobileTargetY : desktopTargetY;
+
+    const targetLookZ = isMobile ? mobileTargetZ : desktopTargetZ;
+
+    const targetFov = isMobile ? mobileFov : desktopFov;
+
+    /*
+     * ==========================================================
+     * CAMERA SHAKE
+     * ==========================================================
+     */
+
+    const shake = cameraShakeRef.current;
+
+    /*
+     * Horizontal camera movement.
+     *
+     * On mobile the camera follows the lane
+     * much more strongly so the car remains
+     * centered.
+     */
+
+    state.camera.position.x =
+      THREE.MathUtils.lerp(
+        state.camera.position.x,
+        targetCameraX,
+        1 - Math.exp(-8 * delta),
+      ) +
+      Math.sin(state.clock.elapsedTime * 75) * shake * 0.18;
+
+    /*
+     * Vertical camera movement.
+     */
 
     state.camera.position.y =
-      2.5 + Math.sin(state.clock.elapsedTime * 1.5) * 0.03;
+      targetCameraY +
+      Math.sin(state.clock.elapsedTime * 1.5) * (isMobile ? 0.02 : 0.03) +
+      Math.sin(state.clock.elapsedTime * 105) * shake * 0.1;
 
-    state.camera.position.z = 9;
+    /*
+     * Mobile camera is farther back.
+     */
 
-    state.camera.fov = THREE.MathUtils.lerp(state.camera.fov, 68, 0.03);
+    state.camera.position.z = targetCameraZ + shake * 0.25;
+
+    /*
+     * Responsive FOV.
+     */
+
+    state.camera.fov = THREE.MathUtils.lerp(state.camera.fov, targetFov, 0.05);
 
     state.camera.updateProjectionMatrix();
 
-    state.camera.lookAt(laneX * 0.1, 0.8, -20);
+    /*
+     * ==========================================================
+     * LOOK AT
+     * ==========================================================
+     *
+     * Mobile looks lower and closer.
+     * This brings the car upward into view.
+     */
+
+    state.camera.lookAt(targetLookX, targetLookY, targetLookZ);
 
     /*
-     * ==========================================
-     * CAMERA SHAKE
-     * ==========================================
+     * Small collision rotation.
+     */
+
+    state.camera.rotation.z +=
+      Math.sin(state.clock.elapsedTime * 48) * shake * 0.025;
+
+    /*
+     * ==========================================================
+     * CAMERA SHAKE DECAY
+     * ==========================================================
      */
 
     if (cameraShakeRef.current > 0) {
-      cameraShakeRef.current *= 0.9;
-
-      if (cameraShakeRef.current < 0.01) {
-        cameraShakeRef.current = 0;
-      }
+      cameraShakeRef.current = Math.max(0, cameraShakeRef.current - delta * 5);
     }
 
     /*
-     * ==========================================
+     * ==========================================================
      * HEAT HAZE
-     * ==========================================
-     *
-     * Kept here for compatibility with
-     * any existing heat haze logic.
+     * ==========================================================
      */
 
     if (heatHazeRef.current) {
@@ -195,28 +365,9 @@ const GameScene = () => {
   });
 
   /*
-   * ==========================================
+   * ============================================================
    * ENVIRONMENT
-   * ==========================================
-   *
-   * Monaco:
-   * - Synthwave city
-   * - Stars
-   * - Moon/sun
-   * - Neon grid
-   * - Purple/pink atmosphere
-   *
-   * Silverstone:
-   * - Daytime
-   * - Blue sky
-   * - Clouds
-   * - Grass
-   * - Trees
-   * - Countryside
-   *
-   * Monza:
-   * Temporarily uses Monaco until
-   * MonzaEnvironment is created.
+   * ============================================================
    */
 
   const environment =
@@ -229,9 +380,9 @@ const GameScene = () => {
     );
 
   /*
-   * ==========================================
+   * ============================================================
    * RENDER
-   * ==========================================
+   * ============================================================
    */
 
   return (
@@ -239,26 +390,36 @@ const GameScene = () => {
       {/* Environment */}
       {environment}
 
-      {/* Moving road loop and cars fixed to the road */}
+      {/* ======================================================
+          MOVING ROAD LOOP
+      ====================================================== */}
+
       <group ref={movingTrackRef}>
         <Track />
+
         <group position={[0, 0, -TRACK_SEGMENT_LENGTH]}>
           <Track />
         </group>
+
         <group position={[0, 0, -TRACK_SEGMENT_LENGTH * 2]}>
           <Track />
         </group>
       </group>
 
+      {/* Obstacles */}
       {phase === "playing" && <Obstacles />}
 
-      {/* Player */}
+      {/* ======================================================
+          PLAYER CAR
+      ====================================================== */}
+
       <Suspense fallback={null}>
         <PlayerCar />
       </Suspense>
-      {/* ======================================
-    POST PROCESSING
-====================================== */}
+
+      {/* ======================================================
+          POST PROCESSING
+      ====================================================== */}
 
       {selectedTrack === "silverstone" ? (
         <EffectComposer multisampling={0}>
@@ -279,6 +440,14 @@ const GameScene = () => {
           <HueSaturation saturation={0.08} hue={0.02} />
         </EffectComposer>
       ) : (
+        /*
+         * ======================================================
+         * MONACO
+         *
+         * ORIGINAL SETTINGS — UNCHANGED
+         * ======================================================
+         */
+
         <EffectComposer multisampling={0}>
           <Bloom
             intensity={1.5}
@@ -304,20 +473,128 @@ const GameScene = () => {
 };
 
 /*
- * ==========================================
+ * ============================================================
  * MAIN GAME COMPONENT
- * ==========================================
+ * ============================================================
  */
 
 export const Game = () => {
   const phase = useGameStore((state: any) => state.phase);
+
   const selectedTrack = useGameStore((state: any) => state.selectedTrack);
 
+  const lives = useGameStore((state: any) => state.lives);
+
+  const previousLivesRef = useRef(lives);
+
+  const [collisionFlash, setCollisionFlash] = useState(false);
+
+  /*
+   * ==========================================================
+   * COLLISION FLASH
+   * ==========================================================
+   */
+
+  useEffect(() => {
+    if (lives >= previousLivesRef.current) {
+      previousLivesRef.current = lives;
+
+      return;
+    }
+
+    previousLivesRef.current = lives;
+
+    setCollisionFlash(true);
+
+    const timeout = window.setTimeout(() => setCollisionFlash(false), 180);
+
+    return () => window.clearTimeout(timeout);
+  }, [lives]);
+
+  /*
+   * ==========================================================
+   * RENDER
+   * ==========================================================
+   */
+
   return (
-    <div className="relative w-screen h-screen bg-black overflow-hidden">
-      {/* ====================================== */}
-      {/* 3D CANVAS */}
-      {/* ====================================== */}
+    <div
+      className="
+        relative
+        h-[100dvh]
+        w-screen
+        overflow-hidden
+        bg-black
+      "
+    >
+      {/* ======================================================
+          RESPONSIVE HUD CSS
+      ====================================================== */}
+
+      <style>
+        {`
+          /*
+           * Desktop HUD
+           */
+          .game-hud-responsive {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+          }
+
+          /*
+           * Portrait phones
+           *
+           * Scale the entire HUD down while keeping
+           * its positions aligned to the viewport.
+           */
+          @media (max-width: 640px) and (orientation: portrait) {
+            .game-hud-responsive {
+              width: 128.2%;
+              height: 128.2%;
+              left: -14.1%;
+              top: -14.1%;
+              transform: scale(0.78);
+              transform-origin: center center;
+            }
+          }
+
+          /*
+           * Very small portrait phones
+           */
+          @media (max-width: 390px) and (orientation: portrait) {
+            .game-hud-responsive {
+              width: 138%;
+              height: 138%;
+              left: -19%;
+              top: -19%;
+              transform: scale(0.725);
+              transform-origin: center center;
+            }
+          }
+
+          /*
+           * Landscape phones / short screens
+           */
+          @media (max-height: 600px) and (max-width: 900px) {
+            .game-hud-responsive {
+              width: 116%;
+              height: 116%;
+              left: -8%;
+              top: -8%;
+              transform: scale(0.86);
+              transform-origin: center center;
+            }
+          }
+        `}
+      </style>
+
+      {/* ======================================================
+          3D CANVAS
+      ====================================================== */}
 
       <Canvas
         camera={{
@@ -340,24 +617,39 @@ export const Game = () => {
           top: 0,
           left: 0,
           width: "100vw",
-          height: "100vh",
+          height: "100dvh",
         }}
       >
         <GameScene />
       </Canvas>
 
-      {/* ====================================== */}
-      {/* HUD OVERLAY */}
-      {/* ====================================== */}
+      {/* ======================================================
+          COLLISION FLASH
+      ====================================================== */}
 
       <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          fixed
+          inset-0
+          z-[90]
+          transition-opacity
+          duration-100
+        "
         style={{
-          position: "fixed",
-          inset: 0,
-          pointerEvents: "none",
-          zIndex: 100,
+          opacity: collisionFlash ? 1 : 0,
+
+          background:
+            "radial-gradient(ellipse at center, transparent 42%, rgba(255, 0, 35, 0.48) 100%)",
         }}
-      >
+      />
+
+      {/* ======================================================
+          RESPONSIVE HUD
+      ====================================================== */}
+
+      <div className="game-hud-responsive">
         {phase === "playing" && (
           <>
             <HUD />
@@ -366,11 +658,15 @@ export const Game = () => {
         )}
       </div>
 
-      {/* ====================================== */}
-      {/* SCREENS */}
-      {/* ====================================== */}
+      {/* ======================================================
+          START SCREEN
+      ====================================================== */}
 
       {phase === "menu" && <StartScreen />}
+
+      {/* ======================================================
+          GAME OVER
+      ====================================================== */}
 
       {phase === "gameover" && <GameOver />}
     </div>

@@ -12,6 +12,7 @@
     "@react-three/drei": "^9.96.1",
     "@react-three/fiber": "^8.15.12",
     "@react-three/postprocessing": "^2.16.0",
+    "@supabase/supabase-js": "^2.117.2",
     "framer-motion": "^12.39.0",
     "howler": "^2.2.4",
     "lucide-react": "^1.16.0",

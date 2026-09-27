@@ -1,29 +1,36 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import React from "react";
 
 import { useGameStore } from "../store/gameStore";
-
+import { saveRaceResult, getBestScore } from "../services/raceResults";
 export const GameOver = React.memo(() => {
   const score = useGameStore((state: any) => state.score);
   const elapsedTime = useGameStore((state: any) => state.elapsedTime);
   const dodgeCount = useGameStore((state: any) => state.dodgeCount);
   const startGame = useGameStore((state: any) => state.startGame);
   const setPhase = useGameStore((state: any) => state.setPhase);
-
+  const selectedTrack = useGameStore((state: any) => state.selectedTrack);
+  const resultSaved = useRef(false);
   const [bestScore, setBestScore] = useState(0);
-
   useEffect(() => {
-    const saved = localStorage.getItem("dgg-f1-best-score");
-    const savedScore = saved ? parseInt(saved, 10) : 0;
-    const newBest = Math.max(savedScore, score);
+    const loadBestScore = async () => {
+      const best = await getBestScore();
+      setBestScore(best);
+    };
 
-    setBestScore(newBest);
+    loadBestScore();
 
-    if (score > savedScore) {
-      localStorage.setItem("dgg-f1-best-score", score.toString());
+    if (!resultSaved.current) {
+      resultSaved.current = true;
+
+      saveRaceResult({
+        track: selectedTrack,
+        score,
+        elapsedTime,
+        dodgeCount,
+      });
     }
-  }, [score]);
-
+  }, [score, elapsedTime, dodgeCount, selectedTrack]);
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -36,7 +43,7 @@ export const GameOver = React.memo(() => {
   const isNewRecord = score > 0 && score >= bestScore;
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
+    <div className="gameover-screen fixed inset-0 z-30 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
       {/* Background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
@@ -51,7 +58,7 @@ export const GameOver = React.memo(() => {
         <div className="absolute left-0 right-0 top-1/2 h-px bg-[#e10600]/30" />
       </div>
 
-      <div className="relative w-full max-w-lg">
+      <div className="gameover-panel relative w-full max-w-lg">
         {/* ====================================================== */}
         {/* RACE CONTROL HEADER */}
         {/* ====================================================== */}

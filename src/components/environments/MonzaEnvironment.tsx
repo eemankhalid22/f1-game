@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFrame, useLoader } from "@react-three/fiber";
+import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 let skyCache: THREE.CanvasTexture | null = null;
@@ -155,6 +155,11 @@ const createSunDisc = () => {
 };
 
 const BuildingsLayer = () => {
+  const { size } = useThree();
+
+  const isMobile = size.width < 700;
+
+  const mobileScale = isMobile ? 0.45 : 1;
   const [buildingsTextures, setBuildingsTextures] = useState<THREE.Texture[]>(
     [],
   );
@@ -230,7 +235,8 @@ const BuildingsLayer = () => {
   let currentX = -totalWidth / 2;
 
   return (
-    <group>
+    <group scale={[mobileScale, mobileScale, 1]}>
+      {" "}
       {skylineImages.map((texture, index) => {
         const imageWidth = imageWidths[index];
 
@@ -268,6 +274,11 @@ const BuildingsLayer = () => {
 };
 
 const LakeLayer = () => {
+  const { size } = useThree();
+
+  const isMobile = size.width < 700;
+
+  const lakeScale = isMobile ? 0.42 : 1;
   const waterTexture = useLoader(
     THREE.TextureLoader,
     "/assets/monza/water/Foam002_Color.jpg",
@@ -296,69 +307,69 @@ const LakeLayer = () => {
       uniforms: {},
 
       vertexShader: `
-      varying vec2 vLocalPosition;
+        varying vec2 vLocalPosition;
 
-      void main() {
-        vLocalPosition = position.xy;
+        void main() {
+          vLocalPosition = position.xy;
 
-        gl_Position =
-          projectionMatrix *
-          modelViewMatrix *
-          vec4(position, 1.0);
-      }
-    `,
+          gl_Position =
+            projectionMatrix *
+            modelViewMatrix *
+            vec4(position, 1.0);
+        }
+      `,
 
       fragmentShader: `
-      varying vec2 vLocalPosition;
+        varying vec2 vLocalPosition;
 
-      void main() {
-        // Normalize lake height
-        float gradient = smoothstep(
-          -30.0,
-          68.0,
-          vLocalPosition.y
-        );
-
-        // Bottom: deep dark blue
-vec3 bottomColor = vec3(
-  0.012, 
-  0.055, 
-  0.16
-);
-
-// Middle: dark blue-purple
-vec3 middleColor = vec3(
-  0.08, 
-  0.045, 
-  0.20
-);
-
-// Top: dark muted purple-magenta
-vec3 topColor = vec3(
-  0.22, 
-  0.055, 
-  0.16
-);
-
-        vec3 gradientColor;
-
-        if (gradient < 0.5) {
-          gradientColor = mix(
-            bottomColor,
-            middleColor,
-            gradient * 2.0
+        void main() {
+          // Normalize lake height
+          float gradient = smoothstep(
+            -30.0,
+            68.0,
+            vLocalPosition.y
           );
-        } else {
-          gradientColor = mix(
-            middleColor,
-            topColor,
-            (gradient - 0.5) * 2.0
-          );
+
+          // Bottom: deep dark blue
+  vec3 bottomColor = vec3(
+    0.012, 
+    0.055, 
+    0.16
+  );
+
+  // Middle: dark blue-purple
+  vec3 middleColor = vec3(
+    0.08, 
+    0.045, 
+    0.20
+  );
+
+  // Top: dark muted purple-magenta
+  vec3 topColor = vec3(
+    0.22, 
+    0.055, 
+    0.16
+  );
+
+          vec3 gradientColor;
+
+          if (gradient < 0.5) {
+            gradientColor = mix(
+              bottomColor,
+              middleColor,
+              gradient * 2.0
+            );
+          } else {
+            gradientColor = mix(
+              middleColor,
+              topColor,
+              (gradient - 0.5) * 2.0
+            );
+          }
+
+          gl_FragColor = vec4(gradientColor, 1.0);
         }
-
-        gl_FragColor = vec4(gradientColor, 1.0);
-      }
-    `,
+      `,
 
       side: THREE.DoubleSide,
     });
@@ -382,93 +393,91 @@ vec3 topColor = vec3(
       toneMapped: false,
 
       vertexShader: `
-      varying vec2 vLocalPosition;
-
-void main() {
-  vLocalPosition = position.xy;
-
-  gl_Position =
-    projectionMatrix *
-    modelViewMatrix *
-    vec4(position, 1.0);
-}
-    `,
-      fragmentShader: `
-  uniform sampler2D uWaterTexture;
-  uniform float uTime;
-
-  varying vec2 vLocalPosition;
+        varying vec2 vLocalPosition;
 
   void main() {
-  // Match the complete lake shape bounds
-vec2 uv = (vLocalPosition - vec2(-200.0, -20.0))
-      / vec2(520.0, 105.0);
-    // Gentle wave movement
-    uv.x += sin(uv.y * 7.0 + uTime * 0.35) * 0.018;
-    uv.x += uTime * 0.008;
+    vLocalPosition = position.xy;
 
-    uv.y += sin(uv.x * 5.0 + uTime * 0.25) * 0.012;
-
-    uv = clamp(uv, 0.001, 0.999);
-
-    vec3 textureColor = texture2D(uWaterTexture, uv).rgb;
-
-    float brightness = dot(
-      textureColor,
-      vec3(0.299, 0.587, 0.114)
-    );
-
-    // Soft glow surrounding each wave
-float halo = smoothstep(0.25, 0.55, brightness);
-
-    // Bright wave center
-float core = smoothstep(0.45, 0.70, brightness);
-    // Warm golden-yellow glow
-    vec3 haloColor = vec3(0.35, 0.48, 0.22);
-    vec3 coreColor = vec3(2.3, 1.15, 0.38);
-
-    // Blend warm colors into the existing wave pattern
-    vec3 finalColor = mix(
-      haloColor,
-      coreColor,
-      core
-    );
-
-    // Subtle animated glow
-    float pulse = 0.92 + sin(uTime * 1.5) * 0.08;
-
-    finalColor *= pulse;
-
-    // Soft halo + bright core
-    float alpha = halo * 0.28 + core * 0.70;
-
-    gl_FragColor = vec4(finalColor, alpha);
+    gl_Position =
+      projectionMatrix *
+      modelViewMatrix *
+      vec4(position, 1.0);
   }
-`,
+      `,
+      fragmentShader: `
+    uniform sampler2D uWaterTexture;
+    uniform float uTime;
+
+    varying vec2 vLocalPosition;
+
+    void main() {
+    // Match the complete lake shape bounds
+  vec2 uv = (vLocalPosition - vec2(-200.0, -20.0))
+        / vec2(520.0, 105.0);
+      // Gentle wave movement
+      uv.x += sin(uv.y * 7.0 + uTime * 0.35) * 0.018;
+      uv.x += uTime * 0.008;
+
+      uv.y += sin(uv.x * 5.0 + uTime * 0.25) * 0.012;
+
+      uv = clamp(uv, 0.001, 0.999);
+
+      vec3 textureColor = texture2D(uWaterTexture, uv).rgb;
+
+      float brightness = dot(
+        textureColor,
+        vec3(0.299, 0.587, 0.114)
+      );
+
+      // Soft glow surrounding each wave
+  float halo = smoothstep(0.25, 0.55, brightness);
+
+      // Bright wave center
+  float core = smoothstep(0.45, 0.70, brightness);
+      // Warm golden-yellow glow
+      vec3 haloColor = vec3(0.35, 0.48, 0.22);
+      vec3 coreColor = vec3(2.3, 1.15, 0.38);
+
+      // Blend warm colors into the existing wave pattern
+      vec3 finalColor = mix(
+        haloColor,
+        coreColor,
+        core
+      );
+
+      // Subtle animated glow
+      float pulse = 0.92 + sin(uTime * 1.5) * 0.08;
+
+      finalColor *= pulse;
+
+      // Soft halo + bright core
+      float alpha = halo * 0.28 + core * 0.70;
+
+      gl_FragColor = vec4(finalColor, alpha);
+    }
+  `,
     });
   }, [waterTexture]);
   useFrame((_, delta) => {
     foamMaterial.uniforms.uTime.value += delta;
   });
+  const lakeY = isMobile ? -28 : -36;
   return (
-    <group>
+    <group scale={[lakeScale, lakeScale, 1]}>
       {/* =====================================
-        BASE LAKE COLOR
-    ===================================== */}
-
+          BASE LAKE COLOR
+      ===================================== */}
       <mesh
-        position={[200, -36, -230]}
+        position={[200, lakeY, -230]}
         renderOrder={-800}
         frustumCulled={false}
         material={lakeMaterial}
       >
         <shapeGeometry args={[lakeShape]} />
       </mesh>
-
       {/* =====================================
-        FOAM TEXTURE OVERLAY
-    ===================================== */}
-
+          FOAM TEXTURE OVERLAY
+      ===================================== */}
       <mesh
         position={[200, -36, -229]}
         renderOrder={-790}
@@ -488,6 +497,11 @@ const YachtLayer = () => {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
   const yachtRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const { size } = useThree();
+  const isMobile = size.width < 700;
+
+  const yachtScale = isMobile ? 0.55 : 1;
+  const depthMovement = isMobile ? 2 : 5;
 
   useEffect(() => {
     const loader = new THREE.TextureLoader();
@@ -542,15 +556,14 @@ const YachtLayer = () => {
 
       const data = yachts[index];
 
-      yacht.position.x = data.x + Math.sin(time * 0.35 + data.phase) * 18;
-
+      yacht.position.x = data.x + Math.sin(time * 0.35 + data.phase) * movement;
       yacht.position.y =
         data.y +
         Math.sin(time * 1.1 + data.phase) * 1.2 +
         Math.sin(time * 0.55 + data.phase) * 0.6;
 
-      yacht.position.z = data.z + Math.sin(time * 0.28 + data.phase) * 5;
-
+      yacht.position.z =
+        data.z + Math.sin(time * 0.28 + data.phase) * depthMovement;
       yacht.rotation.z = Math.sin(time * 0.9 + data.phase) * 0.06;
 
       // Slight pitch movement
@@ -561,12 +574,12 @@ const YachtLayer = () => {
   if (!texture) return null;
 
   const imageAspect = texture.image.width / texture.image.height;
+  const movement = isMobile ? 8 : 18;
 
   return (
     <>
       {yachts.map((yacht, index) => {
-        const imageHeight = yacht.width / imageAspect;
-
+        const imageHeight = (yacht.width / imageAspect) * yachtScale;
         return (
           <group
             key={`yacht-${index}`}
@@ -576,11 +589,11 @@ const YachtLayer = () => {
             position={[yacht.x, yacht.y + imageHeight / 2, yacht.z]}
           >
             {/* =================================================
-            SOFT GLOW
-        ================================================= */}
+              SOFT GLOW
+          ================================================= */}
 
             <mesh
-              scale={[yacht.width * 1.12, imageHeight * 1.12, 1]}
+              scale={[yacht.width * yachtScale * 1.12, imageHeight * 1.12, 1]}
               renderOrder={490}
               frustumCulled={false}
             >
@@ -599,11 +612,11 @@ const YachtLayer = () => {
             </mesh>
 
             {/* =================================================
-            MAIN YACHT
-        ================================================= */}
+              MAIN YACHT
+          ================================================= */}
 
             <mesh
-              scale={[yacht.width, imageHeight, 1]}
+              scale={[yacht.width * yachtScale, imageHeight, 1]}
               renderOrder={500}
               frustumCulled={false}
             >
@@ -627,6 +640,7 @@ const YachtLayer = () => {
     </>
   );
 };
+
 const GreenFieldLayer = () => {
   const [colorMap, normalMap, roughnessMap, aoMap] = useLoader(
     THREE.TextureLoader,
@@ -637,6 +651,22 @@ const GreenFieldLayer = () => {
       "/assets/monza/ground/Ground037_1K-PNG_AmbientOcclusion.png",
     ],
   );
+
+  const { size } = useThree();
+
+  // =====================================================
+  // MOBILE DETECTION
+  // =====================================================
+
+  const isMobile = size.width <= 700;
+
+  const fieldPosition: [number, number, number] = isMobile
+    ? [150, 0.5, -225]
+    : [150, -3, -225];
+
+  const fieldScale: [number, number, number] = isMobile
+    ? [0.75, 0.45, 0.5]
+    : [1.5, 1.5, 0.8];
 
   // =====================================================
   // GRASS TEXTURE
@@ -713,8 +743,12 @@ const GreenFieldLayer = () => {
     return positions;
   }, []);
 
+  // =====================================================
+  // RENDER
+  // =====================================================
+
   return (
-    <group position={[150, -3, -225]} scale={[1.5, 1.5, 0.8]}>
+    <group position={fieldPosition} scale={fieldScale}>
       {/* =====================================================
           GRASS FIELD
       ===================================================== */}
@@ -737,11 +771,11 @@ const GreenFieldLayer = () => {
           ROCKS
       ===================================================== */}
 
-      {rocks.map(([x, y, z, size], i) => (
+      {rocks.map(([x, y, z, rockSize], i) => (
         <mesh
           key={i}
           position={[x, y, z]}
-          scale={[size * 1.4, size * 0.7, size]}
+          scale={[rockSize * 1.4, rockSize * 0.7, rockSize]}
           rotation={[
             Math.random() * 0.5,
             Math.random() * Math.PI,
@@ -1044,6 +1078,13 @@ const CloudsLayer = () => {
 // =====================================================
 
 export const MonzaEnvironment = () => {
+  const { size } = useThree();
+
+  const isMobile = size.width < 700;
+
+  // SKY SIZE
+  const skyHeight = isMobile ? 150 : 100;
+  const skyY = isMobile ? 55 : 48;
   const sunRef = useRef<THREE.Mesh | null>(null);
   const particlesRef = useRef<THREE.Points | null>(null);
 
@@ -1099,8 +1140,8 @@ export const MonzaEnvironment = () => {
       />
       <hemisphereLight args={["#8D5EAA", "#211D30", 0.7]} />
       {/* Existing orange sunset background */}
-      <mesh position={[0, 48, -155]} renderOrder={-1000}>
-        <planeGeometry args={[1000, 100]} />
+      <mesh position={[0, skyY, -155]} renderOrder={-1000}>
+        <planeGeometry args={[1000, skyHeight]} />
 
         <meshBasicMaterial
           map={skyTexture}

@@ -6,29 +6,7 @@ import { Text } from "@react-three/drei";
 
 type Vec3 = [number, number, number];
 
-/* =========================================================
-   SILVERSTONE TRACK
-
-   ONLY TRACK GEOMETRY
-
-   Environment:
-   SilverstoneEnvironment.tsx
-
-   Optimized:
-   - No malformed nested InstancedMesh
-   - No giant number of kerb meshes
-   - Fence posts use proper instancing
-   - Track remains lightweight
-========================================================= */
-
 const TrackSilverstone = () => {
-  /* =======================================================
-     KERB TEXTURE
-
-     Instead of 160 individual meshes, we use a single
-     repeating red/white texture on each side.
-  ======================================================= */
-
   const kerbTexture = useMemo(() => {
     const canvas = document.createElement("canvas");
 
@@ -246,25 +224,60 @@ const TrackSilverstone = () => {
     DGG GRID RUSH SIGN
 ===================================================== */}
 
-        {/* White sign */}
-        <mesh position={[0, 7.15, 0]}>
-          <planeGeometry args={[11.5, 1.8]} />
-          <meshBasicMaterial color="#ffffff" />
-        </mesh>
+        <group position={[0, 0, 0]} renderOrder={1000000}>
+          {/* Main sign */}
+          <mesh position={[0, 7.15, 0]} renderOrder={1000000}>
+            <planeGeometry args={[11.5, 1.8]} />
 
-        {/* DGG GRID RUSH text */}
-        <Text
-          position={[0, 7.15, 0.02]}
-          rotation={[0, 0, 0]}
-          fontSize={0.75}
-          color="#252525"
-          anchorX="center"
-          anchorY="middle"
-          fontWeight="bold"
-          letterSpacing={0.04}
-        >
-          DGG GRID RUSH
-        </Text>
+            <meshBasicMaterial color="#e8e8e2" toneMapped={false} />
+          </mesh>
+
+          {/* =======================================================
+      INNER LIGHT PANEL
+  ======================================================= */}
+
+          <mesh position={[0, 7.15, 0.02]} renderOrder={1000001}>
+            <planeGeometry args={[10.7, 1.2]} />
+
+            <meshBasicMaterial color="#f1eee4" toneMapped={false} />
+          </mesh>
+
+          {/* =======================================================
+      TOP RED STRIPE
+  ======================================================= */}
+
+          <mesh position={[0, 7.88, 0.04]} renderOrder={1000002}>
+            <planeGeometry args={[11.2, 0.06]} />
+
+            <meshBasicMaterial color="#d71920" toneMapped={false} />
+          </mesh>
+
+          {/* =======================================================
+      BOTTOM RED STRIPE
+  ======================================================= */}
+
+          <mesh position={[0, 6.42, 0.04]} renderOrder={1000002}>
+            <planeGeometry args={[11.2, 0.06]} />
+
+            <meshBasicMaterial color="#d71920" toneMapped={false} />
+          </mesh>
+
+          <Text
+            position={[0, 7.15, 0.08]}
+            fontSize={0.62}
+            color="#1a1a1a"
+            anchorX="center"
+            anchorY="middle"
+            fontWeight="900"
+            letterSpacing={0.025}
+            renderOrder={1000003}
+            material-depthTest={false}
+            material-depthWrite={false}
+            material-toneMapped={false}
+          >
+            DGG GRID RUSH
+          </Text>
+        </group>
       </group>
     </group>
   );

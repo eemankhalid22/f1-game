@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { Text } from "@react-three/drei";
 
 const TRACK_LENGTH = 400;
 const TRACK_Z = -80;
@@ -76,16 +77,6 @@ const TrackMonza = () => {
     ctx.fillStyle = "#302b29";
     ctx.fillRect(0, 0, 512, 512);
 
-    /* =====================================================
-     SUNSET REFLECTION
-
-     Brightest toward the horizon.
-     Darker toward the foreground.
-
-     The warm colors are deliberately muted so
-     the road still reads as asphalt.
-  ===================================================== */
-
     const sunsetGradient = ctx.createLinearGradient(0, 0, 0, 512);
 
     sunsetGradient.addColorStop(0.0, "rgba(232, 145, 62, 0.48)");
@@ -102,13 +93,6 @@ const TrackMonza = () => {
 
     ctx.fillStyle = sunsetGradient;
     ctx.fillRect(0, 0, 512, 512);
-
-    /* =====================================================
-     GOLDEN CENTER REFLECTION
-
-     Creates the subtle bright strip down the middle
-     similar to the sunset reference.
-  ===================================================== */
 
     const centerGradient = ctx.createLinearGradient(0, 0, 512, 0);
 
@@ -129,13 +113,6 @@ const TrackMonza = () => {
     ctx.fillStyle = centerGradient;
     ctx.fillRect(0, 0, 512, 512);
 
-    /* =====================================================
-     SOFT HORIZONTAL SUNSET BANDS
-
-     Very subtle variation so the reflection doesn't
-     look like one completely flat gradient.
-  ===================================================== */
-
     for (let i = 0; i < 18; i++) {
       const y = i * 28 + Math.random() * 14;
 
@@ -155,13 +132,6 @@ const TrackMonza = () => {
 
       ctx.fillRect(0, y, 512, 2 + Math.random() * 2);
     }
-
-    /* =====================================================
-     FINE ASPHALT GRAIN
-
-     Keep this AFTER the sunset so the reflection still
-     has visible road texture over it.
-  ===================================================== */
 
     for (let i = 0; i < 18000; i++) {
       const x = Math.random() * 512;
@@ -394,65 +364,244 @@ const TrackMonza = () => {
       ===================================================== */}
       <TrackFence side={-1} />
       <TrackFence side={1} />
-      {/* =====================================================
-    START / FINISH GANTRY
-===================================================== */}
-      <group position={[0, 0, -60]}>
-        {/* LEFT SUPPORT */}
-        <mesh position={[-7.5, 4, 0]} renderOrder={100000}>
-          <cylinderGeometry args={[0.18, 0.22, 8, 10]} />
+      {/* =========================================================
+    MONZA SUNSET — DGG GRID RUSH GANTRY
+========================================================= */}
+      <group position={[0, 0, -60]} renderOrder={1000000}>
+        {/* =======================================================
+      LEFT SUPPORT
+  ======================================================= */}
 
-          <meshStandardMaterial
-            color="#665b52"
-            metalness={0.45}
-            roughness={0.6}
-            side={THREE.DoubleSide}
-            transparent
-            depthTest={false}
-            toneMapped={false}
-          />
-        </mesh>
-
-        {/* RIGHT SUPPORT */}
-        <mesh position={[7.5, 4, 0]} renderOrder={100001}>
-          <cylinderGeometry args={[0.18, 0.22, 8, 10]} />
-
-          <meshStandardMaterial
-            color="#665b52"
-            metalness={0.45}
-            roughness={0.6}
-            side={THREE.DoubleSide}
-            transparent
-            depthTest={false}
-            toneMapped={false}
-          />
-        </mesh>
-
-        {/* TOP BEAM */}
-        <mesh position={[0, 8, 0]} renderOrder={1000}>
-          <boxGeometry args={[15, 0.4, 0.4]} />
-
-          <meshStandardMaterial
-            color="#444649"
-            metalness={0.45}
-            roughness={0.6}
-            side={THREE.DoubleSide}
-            transparent
-            depthTest={false}
-            toneMapped={false}
-          />
-        </mesh>
-
-        {/* WHITE BANNER */}
-        <mesh position={[0, 7.15, 0]} renderOrder={1000}>
-          <planeGeometry args={[13.5, 1.8]} />
+        <mesh position={[-7.2, 4, 0]} renderOrder={1000000}>
+          <cylinderGeometry args={[0.2, 0.24, 8, 10]} />
 
           <meshBasicMaterial
-            color="#f4f4f0"
+            color="#211c20"
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* =======================================================
+      RIGHT SUPPORT
+  ======================================================= */}
+
+        <mesh position={[7.2, 4, 0]} renderOrder={1000000}>
+          <cylinderGeometry args={[0.2, 0.24, 8, 10]} />
+
+          <meshBasicMaterial
+            color="#211c20"
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* =======================================================
+      TOP BEAM
+  ======================================================= */}
+
+        <mesh position={[0, 8.15, 0]} renderOrder={1000001}>
+          <boxGeometry args={[14.8, 0.38, 0.42]} />
+
+          <meshBasicMaterial
+            color="#211c20"
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* =======================================================
+      ORANGE SUNSET TOP STRIPE
+  ======================================================= */}
+
+        <mesh position={[0, 8.36, 0.02]} renderOrder={1000002}>
+          <boxGeometry args={[14.45, 0.07, 0.44]} />
+
+          <meshBasicMaterial
+            color="#ff6b32"
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* =======================================================
+      RED LOWER ACCENT
+  ======================================================= */}
+
+        <mesh position={[0, 6.28, 0.05]} renderOrder={1000002}>
+          <planeGeometry args={[13.7, 0.07]} />
+
+          <meshBasicMaterial
+            color="#e52b24"
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* =======================================================
+      MAIN BANNER
+  ======================================================= */}
+
+        <mesh position={[0, 7.28, 0]} renderOrder={1000003}>
+          <planeGeometry args={[13.8, 1.9]} />
+
+          <meshBasicMaterial
+            color="#c7b9a8"
             side={THREE.DoubleSide}
             transparent
-            // opacity={1}
+            opacity={1}
             depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* =======================================================
+      INNER BANNER PANEL
+  ======================================================= */}
+
+        <mesh position={[0, 7.28, 0.03]} renderOrder={1000004}>
+          <planeGeometry args={[13.25, 1.48]} />
+
+          <meshBasicMaterial
+            color="#f2e8d8"
+            side={THREE.DoubleSide}
+            transparent
+            opacity={1}
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* =======================================================
+      LEFT RED CHECKER ACCENTS
+  ======================================================= */}
+
+        <group renderOrder={1000005}>
+          <mesh position={[-5.95, 7.68, 0.06]}>
+            <planeGeometry args={[0.28, 0.28]} />
+            <meshBasicMaterial
+              color="#e52b24"
+              depthTest={false}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+
+          <mesh position={[-5.63, 7.68, 0.06]}>
+            <planeGeometry args={[0.28, 0.28]} />
+            <meshBasicMaterial
+              color="#e52b24"
+              depthTest={false}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+
+          <mesh position={[-5.79, 7.38, 0.06]}>
+            <planeGeometry args={[0.28, 0.28]} />
+            <meshBasicMaterial
+              color="#e52b24"
+              depthTest={false}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+
+          <mesh position={[-5.47, 7.38, 0.06]}>
+            <planeGeometry args={[0.28, 0.28]} />
+            <meshBasicMaterial
+              color="#e52b24"
+              depthTest={false}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+        </group>
+
+        {/* =======================================================
+      RIGHT RED CHECKER ACCENTS
+  ======================================================= */}
+
+        <group renderOrder={1000005}>
+          <mesh position={[5.95, 7.68, 0.06]}>
+            <planeGeometry args={[0.28, 0.28]} />
+            <meshBasicMaterial
+              color="#e52b24"
+              depthTest={false}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+
+          <mesh position={[5.63, 7.68, 0.06]}>
+            <planeGeometry args={[0.28, 0.28]} />
+            <meshBasicMaterial
+              color="#e52b24"
+              depthTest={false}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+
+          <mesh position={[5.79, 7.38, 0.06]}>
+            <planeGeometry args={[0.28, 0.28]} />
+            <meshBasicMaterial
+              color="#e52b24"
+              depthTest={false}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+
+          <mesh position={[5.47, 7.38, 0.06]}>
+            <planeGeometry args={[0.28, 0.28]} />
+            <meshBasicMaterial
+              color="#e52b24"
+              depthTest={false}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+        </group>
+
+        {/* =======================================================
+      DGG GRID RUSH
+  ======================================================= */}
+
+        <Text
+          position={[0, 7.3, 0.1]}
+          fontSize={0.78}
+          color="#292126"
+          anchorX="center"
+          anchorY="middle"
+          fontWeight="900"
+          letterSpacing={0.025}
+          renderOrder={1000006}
+          material-depthTest={false}
+          material-depthWrite={false}
+          material-toneMapped={false}
+        >
+          DGG GRID RUSH
+        </Text>
+
+        {/* =======================================================
+      RED TEXT ACCENT / UNDERLINE
+  ======================================================= */}
+
+        <mesh position={[0, 6.67, 0.08]} renderOrder={1000007}>
+          <planeGeometry args={[4.8, 0.045]} />
+
+          <meshBasicMaterial
+            color="#e52b24"
+            depthTest={false}
+            depthWrite={false}
             toneMapped={false}
           />
         </mesh>
@@ -493,12 +642,6 @@ const TrackMonza = () => {
           </mesh>
         )),
       )}
-      {/* =====================================================
-          CENTER DASHES
-
-          IMPORTANT:
-          No continuous center line.
-      ===================================================== */}
       {Array.from({ length: 20 }).map((_, i) => (
         <mesh
           key={`center-${i}`}
@@ -520,12 +663,6 @@ const TrackMonza = () => {
     </group>
   );
 };
-
-/* =========================================================
-   TRACK FENCE
-
-   One InstancedMesh per side.
-========================================================= */
 
 function TrackFence({ side }: { side: -1 | 1 }) {
   const postsRef = useRef<THREE.InstancedMesh>(null);

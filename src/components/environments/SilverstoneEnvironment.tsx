@@ -614,7 +614,7 @@ function WatercolorClouds({
         transparent
         opacity={opacity}
         depthWrite={false}
-        depthTest={false}
+        depthTest={true}
         side={THREE.DoubleSide}
       />
     </mesh>

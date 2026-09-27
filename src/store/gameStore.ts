@@ -1,54 +1,54 @@
-import { create } from 'zustand'
+import { create } from "zustand";
 
 interface GameState {
-  phase: 'menu' | 'playing' | 'gameover'
-  selectedTrack: 'monaco' | 'silverstone' | 'monza'
-  speed: number
-  score: number
-  lives: number
-  dodgeCount: number
-  elapsedTime: number
-  obstacleSpeed: number
-  playerLane: number
-  playerZ: number
-  position: number
-  totalRacers: number
-  currentLap: number
-  totalLaps: number
-  rpm: number
-  fuel: number
-  lapTime: number
+  phase: "menu" | "playing" | "gameover";
+  selectedTrack: "monaco" | "silverstone" | "monza";
+  speed: number;
+  score: number;
+  lives: number;
+  dodgeCount: number;
+  elapsedTime: number;
+  obstacleSpeed: number;
+  playerLane: number;
+  playerZ: number;
+  position: number;
+  totalRacers: number;
+  currentLap: number;
+  totalLaps: number;
+  rpm: number;
+  fuel: number;
+  lapTime: number;
 }
 
 interface GameActions {
-  startGame: () => void
-  loseLife: () => void
-  addScore: (points: number) => void
-  setTrack: (track: 'monaco' | 'silverstone' | 'monza') => void
-  endGame: () => void
-  setSpeed: (speed: number) => void
-  setElapsedTime: (time: number) => void
-  setPhase: (phase: 'menu' | 'playing' | 'gameover') => void
-  setObstacleSpeed: (speed: number) => void
-  setPlayerLane: (lane: number) => void
-  setPlayerZ: (z: number) => void
-  incrementDodgeCount: () => void
-  setPosition: (position: number) => void
-  setCurrentLap: (lap: number) => void
-  setRpm: (rpm: number) => void
-  setFuel: (fuel: number) => void
-  setLapTime: (time: number) => void
+  startGame: () => void;
+  loseLife: () => void;
+  addScore: (points: number) => void;
+  setTrack: (track: "monaco" | "silverstone" | "monza") => void;
+  endGame: () => void;
+  setSpeed: (speed: number) => void;
+  setElapsedTime: (time: number) => void;
+  setPhase: (phase: "menu" | "playing" | "gameover") => void;
+  setObstacleSpeed: (speed: number) => void;
+  setPlayerLane: (lane: number) => void;
+  setPlayerZ: (z: number) => void;
+  incrementDodgeCount: () => void;
+  setPosition: (position: number) => void;
+  setCurrentLap: (lap: number) => void;
+  setRpm: (rpm: number) => void;
+  setFuel: (fuel: number) => void;
+  setLapTime: (time: number) => void;
 }
 
-type GameStore = GameState & GameActions
+type GameStore = GameState & GameActions;
 
-const INITIAL_SPEED = 400
-const INITIAL_LIVES = 3
-const INITIAL_PLAYER_Z = 4
+const INITIAL_SPEED = 400;
+const INITIAL_LIVES = 5;
+const INITIAL_PLAYER_Z = 4;
 
 export const useGameStore = create<GameStore>((set: any) => ({
-  phase: 'menu',
-  selectedTrack: 'monaco',
+  phase: "menu",
+  selectedTrack: "monaco",
   speed: INITIAL_SPEED,
   score: 0,
   lives: INITIAL_LIVES,
@@ -67,7 +67,7 @@ export const useGameStore = create<GameStore>((set: any) => ({
 
   startGame: () =>
     set({
-      phase: 'playing',
+      phase: "playing",
       speed: INITIAL_SPEED,
       score: 0,
       lives: INITIAL_LIVES,
@@ -95,14 +95,14 @@ export const useGameStore = create<GameStore>((set: any) => ({
       score: state.score + points,
     })),
 
-  setTrack: (track: 'monaco' | 'silverstone' | 'monza') =>
+  setTrack: (track: "monaco" | "silverstone" | "monza") =>
     set({
       selectedTrack: track,
     }),
 
   endGame: () =>
     set({
-      phase: 'gameover',
+      phase: "gameover",
     }),
 
   setSpeed: (speed: number) =>
@@ -115,7 +115,7 @@ export const useGameStore = create<GameStore>((set: any) => ({
       elapsedTime: time,
     }),
 
-  setPhase: (phase: 'menu' | 'playing' | 'gameover') =>
+  setPhase: (phase: "menu" | "playing" | "gameover") =>
     set({
       phase,
     }),
@@ -164,4 +164,4 @@ export const useGameStore = create<GameStore>((set: any) => ({
     set({
       lapTime: time,
     }),
-}))
+}));

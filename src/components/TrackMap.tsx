@@ -26,8 +26,12 @@ export const TrackMap = () => {
 
   const currentTrack = trackMaps[selectedTrack] || MonacoTrack;
 
+  /* =======================================================
+     UPDATE CAR POSITIONS
+  ======================================================= */
+
   useEffect(() => {
-    const svg = document.querySelector("#track-path") as SVGPathElement;
+    const svg = document.querySelector("#track-path") as SVGPathElement | null;
 
     if (!svg) return;
 
@@ -37,7 +41,10 @@ export const TrackMap = () => {
 
     const newCars: CarDot[] = [];
 
-    // PLAYER
+    /* -------------------------------------------------------
+       PLAYER
+    ------------------------------------------------------- */
+
     const playerPoint = svg.getPointAtLength(playerProgress * length);
 
     newCars.push({
@@ -46,7 +53,10 @@ export const TrackMap = () => {
       player: true,
     });
 
-    // AI CARS
+    /* -------------------------------------------------------
+       AI CARS
+    ------------------------------------------------------- */
+
     for (let i = 0; i < 5; i++) {
       const aiProgress = (playerProgress - (i + 1) * 0.12) % 1;
 
@@ -62,62 +72,103 @@ export const TrackMap = () => {
     }
 
     setCars(newCars);
-  }, [elapsedTime]);
+  }, [elapsedTime, selectedTrack]);
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
     <div
+      className="track-map-inner"
       style={{
         position: "relative",
 
         width: "100%",
         height: "100%",
 
+        minWidth: 0,
+        minHeight: 0,
+
         display: "flex",
-
         alignItems: "center",
-
         justifyContent: "center",
+
+        overflow: "hidden",
       }}
     >
-      {/* background glow */}
+      {/* =====================================================
+          BACKGROUND GLOW
+      ===================================================== */}
+
       <div
         style={{
           position: "absolute",
-
           inset: 0,
 
-          borderRadius: "20px",
+          borderRadius: "clamp(10px, 1.5vw, 20px)",
 
           background:
             "radial-gradient(circle at center, rgba(0,255,157,0.08), transparent 70%)",
+
+          pointerEvents: "none",
+
+          zIndex: 0,
         }}
       />
 
-      {/* TRACK SVG */}
+      {/* =====================================================
+          TRACK SVG
+      ===================================================== */}
+
       <img
         src={currentTrack}
         alt="Track Map"
+        draggable={false}
         style={{
-          width: "100%",
+          position: "absolute",
 
+          width: "100%",
           height: "100%",
+
+          maxWidth: "100%",
+          maxHeight: "100%",
 
           objectFit: "contain",
 
-          filter: "drop-shadow(0 0 12px rgba(0,255,157,0.35))",
+          filter: "drop-shadow(0 0 clamp(5px, 1vw, 12px) rgba(0,255,157,0.35))",
 
           opacity: 0.95,
+
+          pointerEvents: "none",
+
+          userSelect: "none",
+
+          zIndex: 1,
         }}
       />
+
+      {/* =====================================================
+          HIDDEN TRACK PATH
+      ===================================================== */}
+
       <svg
         width="100%"
         height="100%"
         viewBox="0 0 400 320"
+        preserveAspectRatio="xMidYMid meet"
         style={{
           position: "absolute",
           inset: 0,
+
+          width: "100%",
+          height: "100%",
+
           opacity: 0,
+
           pointerEvents: "none",
+
+          zIndex: 2,
         }}
       >
         <path
@@ -132,20 +183,27 @@ export const TrackMap = () => {
         />
       </svg>
 
-      {/* CAR DOTS */}
+      {/* =====================================================
+          CAR DOTS
+      ===================================================== */}
+
       {cars.map((car, index) => (
         <div
           key={index}
+          className={car.player ? "track-map-player" : "track-map-ai"}
           style={{
             position: "absolute",
 
             left: `${car.x}%`,
-
             top: `${car.y}%`,
 
-            width: car.player ? "14px" : "9px",
+            width: car.player
+              ? "clamp(9px, 1.4vw, 14px)"
+              : "clamp(6px, 1vw, 9px)",
 
-            height: car.player ? "14px" : "9px",
+            height: car.player
+              ? "clamp(9px, 1.4vw, 14px)"
+              : "clamp(6px, 1vw, 9px)",
 
             borderRadius: "50%",
 
@@ -153,12 +211,12 @@ export const TrackMap = () => {
 
             boxShadow: car.player
               ? `
-                0 0 10px #ff2bd6,
-                0 0 20px #ff2bd6
+                0 0 clamp(5px, 1vw, 10px) #ff2bd6,
+                0 0 clamp(10px, 2vw, 20px) #ff2bd6
               `
               : `
-                0 0 8px #00FF9D,
-                0 0 16px #00FF9D
+                0 0 clamp(4px, 0.8vw, 8px) #00FF9D,
+                0 0 clamp(8px, 1.5vw, 16px) #00FF9D
               `,
 
             transform: "translate(-50%, -50%)",
@@ -166,28 +224,39 @@ export const TrackMap = () => {
             transition: "all 0.2s linear",
 
             zIndex: car.player ? 10 : 5,
+
+            pointerEvents: "none",
           }}
         />
       ))}
 
-      {/* TRACK LABEL */}
+      {/* =====================================================
+          TRACK LABEL
+      ===================================================== */}
+
       <div
         style={{
           position: "absolute",
 
-          bottom: "4px",
+          bottom: "clamp(3px, 0.7vw, 8px)",
 
           left: "50%",
 
           transform: "translateX(-50%)",
 
-          fontSize: "10px",
+          fontSize: "clamp(6px, 0.7vw, 10px)",
 
-          letterSpacing: "0.35em",
+          letterSpacing: "clamp(0.12em, 0.25vw, 0.35em)",
 
           color: "rgba(255,255,255,0.5)",
 
           fontFamily: "Orbitron, sans-serif",
+
+          whiteSpace: "nowrap",
+
+          pointerEvents: "none",
+
+          zIndex: 20,
         }}
       >
         {selectedTrack.toUpperCase()} GP

@@ -1,19 +1,720 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Yellowtail&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Yellowtail&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
 html,
 body,
 #root {
   margin: 0;
   padding: 0;
+
   width: 100%;
   height: 100%;
+
   overflow: hidden;
-  font-family: 'Inter', sans-serif;
+
+  font-family: "Inter", sans-serif;
+
   background: black;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* =========================================================
+   START / GAME OVER SCREENS
+========================================================= */
+
+.start-screen,
+.gameover-screen {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.gameover-panel {
+  margin-block: auto;
+}
+
+/* =========================================================
+   LARGE DESKTOP
+   1601px+
+   
+   Your normal/full HUD lives here.
+========================================================= */
+
+@media (min-width: 1601px) {
+  .hud-position {
+    /* keep original */
+  }
+
+  .hud-timer {
+    /* keep original */
+  }
+
+  .hud-lives {
+    /* keep original */
+  }
+
+  .hud-speedometer {
+    /* keep original */
+  }
+
+  .hud-fuel {
+    /* keep original */
+  }
+
+  .hud-tyres {
+    /* keep original */
+  }
+
+  .hud-leaderboard {
+    /* keep original */
+  }
+
+  .hud-track-map {
+    /* keep original */
+  }
+}
+
+/* =========================================================
+   LAPTOP
+   1024px – 1600px
+
+   Compact layout for laptops such as:
+   1024x768
+   1280x720
+   1366x768
+   1440x900
+   1536x864
+========================================================= */
+
+@media (min-width: 1024px) and (max-width: 1600px) {
+  /* -------------------------------------------------------
+     POSITION
+  ------------------------------------------------------- */
+
+  .hud-position {
+    top: 12px !important;
+    left: 12px !important;
+
+    width: 150px !important;
+
+    padding: 12px !important;
+
+    border-radius: 16px !important;
+  }
+
+  .hud-position > div:first-child {
+    margin-bottom: 5px !important;
+    font-size: 9px !important;
+  }
+
+  .hud-position > div:nth-child(2) {
+    font-size: 40px !important;
+  }
+
+  .hud-position > div:nth-child(3) {
+    margin-top: 10px !important;
+    margin-bottom: 5px !important;
+
+    font-size: 9px !important;
+  }
+
+  .hud-position > div:nth-child(4) {
+    font-size: 22px !important;
+  }
+
+  /* -------------------------------------------------------
+     TIMER
+  ------------------------------------------------------- */
+
+  .hud-timer {
+    top: 8px !important;
+
+    padding: 7px 16px !important;
+
+    border-radius: 14px !important;
+  }
+
+  .hud-timer > div:first-child {
+    font-size: 25px !important;
+  }
+
+  .hud-timer > div:nth-child(2) {
+    gap: 8px !important;
+    margin-top: 2px !important;
+
+    font-size: 9px !important;
+  }
+
+  /* -------------------------------------------------------
+     LIVES
+     
+     THIS is the laptop position.
+     Increase top = move DOWN.
+     Decrease top = move UP.
+  ------------------------------------------------------- */
+
+  .hud-lives {
+    top: 20vh !important;
+
+    bottom: auto !important;
+
+    gap: 14px !important;
+  }
+
+  .hud-lives > div {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .hud-leaderboard {
+    left: 12px !important;
+
+    top: 50% !important;
+    bottom: auto !important;
+
+    transform: translateY(-50%) scale(0.62) !important;
+    transform-origin: center left !important;
+
+    z-index: 40 !important;
+  }
+
+  /* -------------------------------------------------------
+     TRACK MAP
+  ------------------------------------------------------- */
+
+  .hud-track-map {
+    right: 12px !important;
+    top: 18px !important;
+
+    transform: scale(0.78) !important;
+
+    transform-origin: top right !important;
+  }
+
+  /* -------------------------------------------------------
+     FUEL
+  ------------------------------------------------------- */
+
+  .hud-fuel {
+    left: 12px !important;
+    bottom: 18px !important;
+
+    width: 125px !important;
+
+    padding: 10px !important;
+
+    border-radius: 14px !important;
+  }
+
+  .hud-fuel > div:first-child {
+    margin-bottom: 5px !important;
+    font-size: 9px !important;
+  }
+
+  .hud-fuel > div:nth-child(2) {
+    font-size: 27px !important;
+  }
+
+  /* -------------------------------------------------------
+     TYRES
+  ------------------------------------------------------- */
+
+  .hud-tyres {
+    left: 145px !important;
+    bottom: 18px !important;
+
+    width: 110px !important;
+
+    padding: 10px !important;
+
+    border-radius: 14px !important;
+  }
+
+  .hud-tyres > div:first-child {
+    margin-bottom: 5px !important;
+    font-size: 9px !important;
+  }
+
+  .hud-tyres > div:nth-child(2) {
+    font-size: 27px !important;
+  }
+
+  /* -------------------------------------------------------
+     SPEEDOMETER
+  ------------------------------------------------------- */
+
+  .hud-speedometer {
+    bottom: 18px !important;
+
+    transform: translateX(-50%) scale(0.82) !important;
+
+    transform-origin: bottom center !important;
+  }
+}
+
+/* =========================================================
+   SHORT LAPTOP
+   1024px – 1600px
+   Height below 850px
+
+   Moves bottom HUD slightly higher.
+========================================================= */
+
+@media (min-width: 1024px) and (max-width: 1600px) and (max-height: 850px) {
+  .hud-lives {
+    top: 17vh !important;
+  }
+
+  .hud-fuel {
+    bottom: 12px !important;
+  }
+
+  .hud-tyres {
+    bottom: 12px !important;
+  }
+
+  .hud-speedometer {
+    bottom: 12px !important;
+
+    transform: translateX(-50%) scale(0.75) !important;
+  }
+}
+
+/* =========================================================
+   TABLET / SMALL DESKTOP
+   Below 1200px
+========================================================= */
+
+@media (max-width: 1200px) {
+  /* Hide large side panels */
+
+  .hud-leaderboard,
+  .hud-track-map {
+    display: none !important;
+  }
+
+  /* -------------------------------------------------------
+     POSITION
+  ------------------------------------------------------- */
+
+  .hud-position {
+    top: 12px !important;
+    left: 12px !important;
+
+    width: 148px !important;
+
+    padding: 10px !important;
+
+    border-radius: 14px !important;
+  }
+
+  .hud-position > div:first-child,
+  .hud-fuel > div:first-child,
+  .hud-tyres > div:first-child {
+    margin-bottom: 5px !important;
+    font-size: 9px !important;
+  }
+
+  .hud-position > div:nth-child(2) {
+    font-size: 38px !important;
+  }
+
+  .hud-position > div:nth-child(3) {
+    margin-top: 10px !important;
+    margin-bottom: 5px !important;
+
+    font-size: 9px !important;
+  }
+
+  .hud-position > div:nth-child(4) {
+    font-size: 22px !important;
+  }
+
+  /* -------------------------------------------------------
+     TIMER
+  ------------------------------------------------------- */
+
+  .hud-timer {
+    top: 10px !important;
+
+    padding: 6px 14px !important;
+
+    border-radius: 12px !important;
+  }
+
+  .hud-timer > div:first-child {
+    font-size: 24px !important;
+  }
+
+  .hud-timer > div:nth-child(2) {
+    gap: 7px !important;
+    margin-top: 2px !important;
+
+    font-size: 9px !important;
+  }
+
+  /* -------------------------------------------------------
+     LIVES
+  ------------------------------------------------------- */
+
+  .hud-lives {
+    top: 27vh !important;
+
+    bottom: auto !important;
+
+    gap: 9px !important;
+  }
+
+  .hud-lives > div {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  /* -------------------------------------------------------
+     SPEEDOMETER
+  ------------------------------------------------------- */
+
+  .hud-speedometer {
+    bottom: 12px !important;
+
+    transform: translateX(-50%) scale(0.78) !important;
+
+    transform-origin: bottom center !important;
+  }
+
+  /* -------------------------------------------------------
+     FUEL
+  ------------------------------------------------------- */
+
+  .hud-fuel {
+    left: 12px !important;
+    bottom: 12px !important;
+
+    width: 128px !important;
+
+    padding: 10px !important;
+
+    border-radius: 14px !important;
+  }
+
+  .hud-fuel > div:nth-child(2) {
+    font-size: 26px !important;
+  }
+
+  /* -------------------------------------------------------
+     TYRES
+  ------------------------------------------------------- */
+
+  .hud-tyres {
+    left: 150px !important;
+    bottom: 12px !important;
+
+    width: 110px !important;
+
+    padding: 10px !important;
+
+    border-radius: 14px !important;
+  }
+
+  .hud-tyres > div:nth-child(2) {
+    font-size: 26px !important;
+  }
+}
+
+/* =========================================================
+   MOBILE PORTRAIT
+   ≤ 650px
+========================================================= */
+
+@media (max-width: 650px) and (orientation: portrait) {
+  /* =======================================================
+     POSITION
+  ======================================================= */
+
+  .hud-position {
+    top: 8px !important;
+    left: 8px !important;
+
+    width: 112px !important;
+
+    padding: 8px !important;
+
+    border-radius: 12px !important;
+  }
+
+  .hud-position > div:first-child {
+    font-size: 8px !important;
+  }
+
+  .hud-position > div:nth-child(2) {
+    font-size: 30px !important;
+  }
+
+  .hud-position > div:nth-child(3) {
+    margin-top: 7px !important;
+    margin-bottom: 4px !important;
+    font-size: 8px !important;
+  }
+
+  .hud-position > div:nth-child(4) {
+    font-size: 18px !important;
+  }
+
+  /* =======================================================
+     TIMER
+  ======================================================= */
+
+  .hud-timer {
+    top: 8px !important;
+
+    left: auto !important;
+    right: 8px !important;
+
+    transform: none !important;
+
+    padding: 7px 9px !important;
+
+    border-radius: 10px !important;
+  }
+
+  .hud-timer > div:first-child {
+    font-size: 19px !important;
+  }
+
+  .hud-timer > div:nth-child(2) {
+    gap: 5px !important;
+    margin-top: 2px !important;
+    font-size: 7px !important;
+  }
+
+  /* =======================================================
+     LIVES
+  ======================================================= */
+
+  .hud-lives {
+    top: 25vh !important;
+
+    bottom: auto !important;
+
+    gap: 8px !important;
+  }
+
+  .hud-lives > div {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .hud-leaderboard {
+    display: block !important;
+
+    left: 8px !important;
+    top: 135px !important;
+
+    width: 135px !important;
+
+    transform: scale(0.48) !important;
+    transform-origin: top left !important;
+
+    z-index: 40 !important;
+  }
+  .hud-track-map {
+    display: block !important;
+
+    right: 8px !important;
+    top: 80px !important;
+
+    width: 130px !important;
+    height: 180px !important;
+
+    transform: scale(0.8) !important;
+    transform-origin: top right !important;
+
+    z-index: 40 !important;
+
+    overflow: hidden !important;
+  }
+
+  /* =======================================================
+     FUEL
+  ======================================================= */
+
+  .hud-fuel {
+    display: block !important;
+
+    left: 8px !important;
+
+    bottom: 76px !important;
+
+    width: 100px !important;
+
+    padding: 8px !important;
+
+    border-radius: 11px !important;
+
+    z-index: 50 !important;
+  }
+
+  .hud-fuel > div:first-child {
+    font-size: 8px !important;
+  }
+
+  .hud-fuel > div:nth-child(2) {
+    font-size: 23px !important;
+  }
+
+  /* =======================================================
+     TYRES
+  ======================================================= */
+
+  .hud-tyres {
+    display: block !important;
+
+    left: auto !important;
+    right: 8px !important;
+
+    bottom: 76px !important;
+
+    width: 92px !important;
+
+    padding: 8px !important;
+
+    border-radius: 11px !important;
+
+    z-index: 50 !important;
+  }
+
+  .hud-tyres > div:first-child {
+    font-size: 8px !important;
+
+    margin-bottom: 4px !important;
+  }
+
+  .hud-tyres > div:nth-child(2) {
+    font-size: 21px !important;
+  }
+
+  /* =======================================================
+     SPEEDOMETER
+  ======================================================= */
+
+  .hud-speedometer {
+    left: 50% !important;
+
+    bottom: 70px !important;
+
+    transform: translateX(-50%) scale(0.48) !important;
+
+    transform-origin: bottom center !important;
+
+    z-index: 60 !important;
+  }
+}
+
+/* =========================================================
+   MOBILE LANDSCAPE
+   ≤ 900px wide AND ≤ 600px tall
+========================================================= */
+
+@media (max-width: 900px) and (max-height: 600px) and (orientation: landscape) {
+  .hud-position {
+    top: 6px !important;
+    left: 6px !important;
+
+    width: 105px !important;
+
+    padding: 7px !important;
+  }
+
+  .hud-timer {
+    top: 6px !important;
+  }
+
+  .hud-lives {
+    top: 70px !important;
+
+    gap: 7px !important;
+  }
+
+  .hud-lives > div {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .hud-speedometer {
+    bottom: 5px !important;
+
+    transform: translateX(-50%) scale(0.52) !important;
+  }
+
+  .hud-fuel {
+    bottom: 5px !important;
+    left: 6px !important;
+  }
+
+  .hud-tyres {
+    display: none !important;
+  }
+
+  .hud-leaderboard,
+  .hud-track-map {
+    display: none !important;
+  }
+}
+
+/* =========================================================
+   VERY SHORT SCREENS
+   ≤ 440px height
+========================================================= */
+
+@media (max-height: 440px) {
+  .hud-tyres {
+    display: none !important;
+  }
+
+  .hud-lives {
+    top: 60px !important;
+  }
+}
+
+/* =========================================================
+   START SCREEN — SHORT LANDSCAPE
+========================================================= */
+
+@media (max-height: 620px) and (orientation: landscape) {
+  .start-screen {
+    align-items: flex-start !important;
+  }
+
+  .start-screen-content {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .start-screen-header {
+    margin-bottom: 16px !important;
+  }
+
+  .start-screen-title {
+    font-size: clamp(36px, 8vh, 56px) !important;
+  }
+
+  .start-screen-tracks {
+    gap: 8px !important;
+  }
+
+  .start-screen-actions {
+    margin-top: 12px !important;
+  }
+
+  .gameover-screen {
+    align-items: flex-start !important;
+  }
 }
