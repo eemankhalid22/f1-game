@@ -179,6 +179,22 @@ export const PlayerCar = memo(() => {
   }, [scene]);
 
   useEffect(() => {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const moveLane = (direction: -1 | 1) => {
+      const nextLane = THREE.MathUtils.clamp(
+        targetLaneRef.current + direction,
+        0,
+        LANE_POSITIONS.length - 1,
+      );
+
+      if (nextLane !== targetLaneRef.current) {
+        targetLaneRef.current = nextLane;
+        setPlayerLane(nextLane);
+      }
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       // Prevent browser scrolling
       if (
@@ -191,26 +207,40 @@ export const PlayerCar = memo(() => {
       }
 
       if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") {
-        const nextLane = Math.max(0, targetLaneRef.current - 1);
-        if (nextLane !== targetLaneRef.current) {
-          targetLaneRef.current = nextLane;
-          setPlayerLane(nextLane);
-        }
+        moveLane(-1);
       }
 
       if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") {
-        const nextLane = Math.min(2, targetLaneRef.current + 1);
-        if (nextLane !== targetLaneRef.current) {
-          targetLaneRef.current = nextLane;
-          setPlayerLane(nextLane);
-        }
+        moveLane(1);
       }
     };
 
+    const handleTouchStart = (event: TouchEvent) => {
+      const touch = event.changedTouches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      const touch = event.changedTouches[0];
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+
+      if (Math.abs(deltaX) < 40 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+        return;
+      }
+
+      moveLane(deltaX < 0 ? -1 : 1);
+    };
+
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
     };
   }, []);
 

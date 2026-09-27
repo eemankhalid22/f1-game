@@ -618,6 +618,7 @@ export const Game = () => {
           left: 0,
           width: "100vw",
           height: "100dvh",
+          touchAction: "none",
         }}
       >
         <GameScene />

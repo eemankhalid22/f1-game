@@ -44,7 +44,7 @@ export const TrackMonaco = React.memo(() => {
     const colors = ["#ff00ff", "#00ffff", "#ff0044", "#ffff00", "#ff8800"];
 
     return {
-      left: Array.from({ length: 12 }).map((_) => {
+      left: Array.from({ length: 12 }).map(() => {
         const z = -Math.random() * 300 - 20;
         const y = 1.5 + Math.random() * 2;
         const clusterSize = Math.floor(Math.random() * 3) + 2;
@@ -60,7 +60,7 @@ export const TrackMonaco = React.memo(() => {
         };
       }),
 
-      right: Array.from({ length: 12 }).map((_) => {
+      right: Array.from({ length: 12 }).map(() => {
         const z = -Math.random() * 300 - 20;
         const y = 1.5 + Math.random() * 2;
         const clusterSize = Math.floor(Math.random() * 3) + 2;
