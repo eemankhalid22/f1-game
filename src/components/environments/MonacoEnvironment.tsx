@@ -501,8 +501,7 @@ export const MonacoEnvironment = () => {
   const [skylineTexture, setSkylineTexture] =
     useState<THREE.CanvasTexture | null>(null);
 
-  const [darkSkylineTexture, setDarkSkylineTexture] =
-    useState<THREE.CanvasTexture | null>(null);
+  const [, setDarkSkylineTexture] = useState<THREE.CanvasTexture | null>(null);
   useEffect(() => {
     const skyline = createSynthwaveSkyline();
     const darkSkyline = createDarkSkyline();

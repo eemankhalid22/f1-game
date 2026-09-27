@@ -21,7 +21,7 @@ import * as THREE from "three";
 
 type Vec3 = [number, number, number];
 
-type ElementType = "tree" | "cow" | "sheep" | "cow" | "flowers";
+type ElementType = "tree" | "sheep" | "cow" | "flowers";
 
 /* =========================================================
    EASY CONTROLS
@@ -31,7 +31,6 @@ const SHOW_TREES = true;
 const SHOW_FLOWERS = true;
 const SHOW_COWS = true;
 const SHOW_SHEEP = true;
-const SHOW_cowS = true;
 
 /*
  * Set these to false individually whenever you want.
@@ -152,101 +151,6 @@ function createWatercolorTexture(type: ElementType) {
     ctx.arc(151, 67, 15, 0, Math.PI * 2);
 
     ctx.fill();
-  } else if (type === "cow") {
-    /* =======================================================
-     COW
-  ======================================================= */
-    /* body */
-
-    ctx.fillStyle = "rgba(245,241,229,0.92)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(112, 140, 70, 39, 0, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    /* soft watercolor body wash */
-
-    ctx.fillStyle = "rgba(211,204,188,0.25)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(106, 146, 63, 29, 0, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    /* black patches */
-
-    ctx.fillStyle = "rgba(47,48,43,0.78)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(78, 126, 24, 17, -0.25, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    ctx.beginPath();
-
-    ctx.ellipse(132, 153, 20, 13, 0.25, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    /* head */
-
-    ctx.fillStyle = "rgba(239,235,222,0.95)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(181, 122, 30, 28, 0, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    /* ears */
-
-    ctx.fillStyle = "rgba(116,91,70,0.75)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(190, 96, 15, 7, -0.4, 0, Math.PI * 2);
-
-    ctx.ellipse(191, 146, 15, 7, 0.4, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    /* legs */
-
-    ctx.fillStyle = "rgba(88,77,65,0.8)";
-
-    ctx.fillRect(72, 164, 9, 42);
-
-    ctx.fillRect(108, 167, 9, 39);
-
-    ctx.fillRect(145, 164, 9, 42);
-
-    /* tail */
-
-    ctx.strokeStyle = "rgba(76,61,50,0.75)";
-
-    ctx.lineWidth = 5;
-
-    ctx.beginPath();
-
-    ctx.moveTo(47, 135);
-
-    ctx.quadraticCurveTo(23, 163, 39, 179);
-
-    ctx.stroke();
-
-    /* tiny tail brush */
-
-    ctx.fillStyle = "rgba(55,45,38,0.8)";
-
-    ctx.beginPath();
-
-    ctx.arc(39, 180, 7, 0, Math.PI * 2);
-
-    ctx.fill();
   } else if (type === "sheep") {
     /* =======================================================
      SHEEP
@@ -290,59 +194,6 @@ function createWatercolorTexture(type: ElementType) {
     ctx.fillRect(124, 166, 7, 34);
 
     ctx.fillRect(151, 163, 7, 37);
-  } else if (type === "cow") {
-    /* =======================================================
-     cow
-  ======================================================= */
-    /* body */
-
-    ctx.fillStyle = "rgba(187,178,167,0.92)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(119, 163, 42, 28, 0, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    /* head */
-
-    ctx.beginPath();
-
-    ctx.arc(155, 142, 24, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    /* ears */
-
-    ctx.fillStyle = "rgba(174,164,153,0.9)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(147, 101, 9, 32, -0.12, 0, Math.PI * 2);
-
-    ctx.ellipse(169, 102, 9, 32, 0.12, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    /* tail */
-
-    ctx.fillStyle = "rgba(242,238,228,0.95)";
-
-    ctx.beginPath();
-
-    ctx.arc(77, 158, 13, 0, Math.PI * 2);
-
-    ctx.fill();
-
-    /* eye */
-
-    ctx.fillStyle = "rgba(40,35,30,0.8)";
-
-    ctx.beginPath();
-
-    ctx.arc(165, 137, 3, 0, Math.PI * 2);
-
-    ctx.fill();
   } else if (type === "flowers") {
     /* =======================================================
      FLOWERS
@@ -445,11 +296,6 @@ function WatercolorSprite({
     height = 13;
   }
 
-  if (type === "cow") {
-    width = 7;
-    height = 5;
-  }
-
   if (type === "sheep") {
     width = 6;
     height = 4.5;
@@ -492,10 +338,6 @@ function Cow({ position, scale = 1 }: { position: Vec3; scale?: number }) {
 
 function Sheep({ position, scale = 1 }: { position: Vec3; scale?: number }) {
   return <WatercolorSprite type="sheep" position={position} scale={scale} />;
-}
-
-function cow({ position, scale = 1 }: { position: Vec3; scale?: number }) {
-  return <WatercolorSprite type="cow" position={position} scale={scale} />;
 }
 
 function FlowerPatch({
@@ -607,17 +449,17 @@ export default function SilverstoneScenery() {
           Tiny details.
       =================================================== */}
 
-      {SHOW_cowS && (
+      {SHOW_COWS && (
         <>
-          <cow position={[-12, 1, -34]} scale={0.65} />
+          <Cow position={[-12, 1, -34]} scale={0.65} />
 
-          <cow position={[14, 1, -72]} scale={0.58} />
+          <Cow position={[14, 1, -72]} scale={0.58} />
 
-          <cow position={[-15, 1, -118]} scale={0.62} />
+          <Cow position={[-15, 1, -118]} scale={0.62} />
 
-          <cow position={[17, 1, -160]} scale={0.55} />
+          <Cow position={[17, 1, -160]} scale={0.55} />
 
-          <cow position={[-18, 1, -215]} scale={0.58} />
+          <Cow position={[-18, 1, -215]} scale={0.58} />
         </>
       )}
     </group>
