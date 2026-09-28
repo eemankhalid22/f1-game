@@ -26,10 +26,9 @@ const TEAM_CONFIGS = {
     primary: "#00A19B", // Aston Martin
     secondary: "#111111",
   },
-
   D: {
-    primary: "#1e1d03", // McLaren
-    secondary: "#111111",
+    primary: "#c58f18",
+    secondary: "#242424",
   },
 
   E: {
@@ -43,13 +42,13 @@ const TEAM_CONFIGS = {
   },
 
   G: {
-    primary: "#bec1be", // RB Visa
-    secondary: "#FFFFFF",
+    primary: "#e8e8e8",
+    secondary: "#ffffff",
   },
 
   H: {
-    primary: "#00E701", // Sauber
-    secondary: "#111111",
+    primary: "#19ff18",
+    secondary: "#202020",
   },
 };
 
@@ -93,39 +92,39 @@ const ObstacleCar = ({
       if (!node.isMesh) return;
 
       node.castShadow = true;
+
+      // Don't let the environment shadows make obstacle cars disappear
       node.receiveShadow = true;
+
+      node.renderOrder = 100000;
 
       node.material = node.material.clone();
 
-      node.material.roughness = 1;
-      node.material.metalness = 0.15;
-
-      // brighten only car materials
-      if (node.material.color) {
-        node.material.color.multiplyScalar(4);
-      }
+      const material = node.material;
       const name = node.name.toLowerCase();
 
-      // Main body color
+      material.roughness = 0.65;
+      material.metalness = 0.1;
+
+      // ==========================================
+      // 🚗 MAIN CAR BODY
+      // ==========================================
+
       if (node.material.color) {
-        node.material.color.set(cfg.primary);
+        node.material.color.set(
+          name.includes("wheel") ||
+            name.includes("tire") ||
+            name.includes("tyre") ||
+            name.includes("wing") ||
+            name.includes("spoiler") ||
+            name.includes("floor")
+            ? cfg.secondary
+            : cfg.primary,
+        );
       }
 
-      // Wheels + aero parts
-      if (
-        name.includes("wheel") ||
-        name.includes("tire") ||
-        name.includes("tyre") ||
-        name.includes("wing") ||
-        name.includes("spoiler") ||
-        name.includes("floor")
-      ) {
-        node.material.color.set(cfg.secondary);
-      }
-
-      node.material.needsUpdate = true;
+      material.needsUpdate = true;
     });
-
     return c;
   }, [scene, carType]);
 
@@ -134,17 +133,16 @@ const ObstacleCar = ({
       ref={meshRef}
       position={[LANE_POSITIONS[lane], 0.8, z]}
       rotation={[0, -Math.PI, 0]}
-      scale={[0.5, 0.5, 0.5]}
+      scale={[0.58, 0.58, 0.58]}
+      renderOrder={100000}
     >
-      {/* Car-only lighting
-       */}
       <pointLight
-        position={[0, 3, 0]}
+        position={[0, 2.2, 0]}
         intensity={5}
         color="#ffffff"
-        distance={8}
+        distance={5}
+        decay={2}
       />
-
       <primitive object={cloned} />
     </group>
   );

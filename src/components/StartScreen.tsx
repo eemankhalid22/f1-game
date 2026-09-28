@@ -90,7 +90,7 @@ export const StartScreen = React.memo(() => {
             <div className="h-1 w-1 bg-[#e10600] sm:h-2 sm:w-2" />
 
             <span className="text-[6px] font-bold uppercase tracking-[0.15em] text-white/50 sm:text-[10px]">
-              DGG Formula Racing
+              Formula Racing
             </span>
 
             <div className="h-px w-5 bg-white/10 sm:w-16" />

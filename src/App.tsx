@@ -57,7 +57,7 @@ export default function App() {
   return (
     <>
       {phase === "menu" && <StartScreen />}
-      {phase === "playing" && <Game />}
+      {(phase === "countdown" || phase === "playing") && <Game />}
       {phase === "gameover" && <GameOver />}
     </>
   );

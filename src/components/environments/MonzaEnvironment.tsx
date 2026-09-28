@@ -27,13 +27,13 @@ const createSky = () => {
   const gradient = ctx.createLinearGradient(0, 0, 0, H);
 
   ctx.fillRect(0, 0, W, H);
-  gradient.addColorStop(0.0, "#21182F");
-  gradient.addColorStop(0.18, "#3C2948");
-  gradient.addColorStop(0.38, "#79404F");
-  gradient.addColorStop(0.58, "#B95751");
-  gradient.addColorStop(0.74, "#E8754F");
-  gradient.addColorStop(0.88, "#F99A4F");
-  gradient.addColorStop(1.0, "#FFBE65");
+  gradient.addColorStop(0.0, "#1B162A");
+  gradient.addColorStop(0.18, "#2E243C");
+  gradient.addColorStop(0.38, "#64455A");
+  gradient.addColorStop(0.58, "#9A6257");
+  gradient.addColorStop(0.74, "#D88363");
+  gradient.addColorStop(0.88, "#E8A164");
+  gradient.addColorStop(1.0, "#EFC77C");
 
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, W, H);
@@ -49,13 +49,13 @@ const createSky = () => {
     H * 0.83,
     H * 0.63,
   );
-  glow.addColorStop(0, "rgba(255,220,130,0.95)");
+  glow.addColorStop(0, "rgba(255,220,130,0.55)");
 
-  glow.addColorStop(0.25, "rgba(255,160,90,0.45)");
+  glow.addColorStop(0.25, "rgba(255,170,90,0.22)");
 
-  glow.addColorStop(0.6, "rgba(235,100,80,0.18)");
+  glow.addColorStop(0.6, "rgba(228,120,75,0.08)");
 
-  glow.addColorStop(1, "rgba(235,100,80,0)");
+  glow.addColorStop(1, "rgba(228,120,75,0)");
 
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
@@ -64,11 +64,11 @@ const createSky = () => {
   // =====================================
 
   const cloudBands = [
-    { y: 280, width: 280, height: 10, alpha: 0.15 },
-    { y: 350, width: 420, height: 12, alpha: 0.12 },
-    { y: 440, width: 350, height: 9, alpha: 0.15 },
-    { y: 550, width: 500, height: 14, alpha: 0.1 },
-    { y: 650, width: 430, height: 12, alpha: 0.12 },
+    { y: 280, width: 280, height: 10, alpha: 0.12 },
+    { y: 350, width: 420, height: 12, alpha: 0.09 },
+    { y: 440, width: 350, height: 9, alpha: 0.1 },
+    { y: 550, width: 500, height: 14, alpha: 0.07 },
+    { y: 650, width: 430, height: 12, alpha: 0.08 },
   ];
 
   cloudBands.forEach((band, index) => {
@@ -92,6 +92,7 @@ const createSun = () => {
   if (sunCache) return sunCache;
 
   const canvas = document.createElement("canvas");
+
   canvas.width = 512;
   canvas.height = 512;
 
@@ -99,22 +100,28 @@ const createSun = () => {
 
   const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
 
-  // Softer, less intense sun
-  gradient.addColorStop(0.0, "rgba(255, 245, 190, 0.55)");
-  gradient.addColorStop(0.1, "rgba(255, 215, 120, 0.40)");
-  gradient.addColorStop(0.22, "rgba(255, 175, 75, 0.26)");
-  gradient.addColorStop(0.38, "rgba(245, 125, 50, 0.14)");
-  gradient.addColorStop(0.52, "rgba(225, 90, 45, 0.07)");
+  // ☀️ Stronger center, tighter glow
+  gradient.addColorStop(0.0, "rgba(255, 250, 210, 0.95)");
 
-  gradient.addColorStop(0.65, "rgba(210, 75, 45, 0.025)");
-  gradient.addColorStop(0.76, "rgba(200, 70, 45, 0.01)");
-  gradient.addColorStop(0.88, "rgba(200, 70, 45, 0.002)");
+  gradient.addColorStop(0.08, "rgba(255, 225, 135, 0.75)");
+
+  gradient.addColorStop(0.18, "rgba(255, 185, 85, 0.50)");
+
+  gradient.addColorStop(0.3, "rgba(245, 135, 55, 0.28)");
+
+  gradient.addColorStop(0.45, "rgba(225, 95, 45, 0.12)");
+
+  gradient.addColorStop(0.6, "rgba(210, 75, 45, 0.04)");
+
+  gradient.addColorStop(0.75, "rgba(200, 70, 45, 0.01)");
+
   gradient.addColorStop(1.0, "rgba(200, 70, 45, 0)");
 
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 512, 512);
 
   sunCache = new THREE.CanvasTexture(canvas);
+
   sunCache.colorSpace = THREE.SRGBColorSpace;
   sunCache.minFilter = THREE.LinearFilter;
   sunCache.magFilter = THREE.LinearFilter;
@@ -594,7 +601,7 @@ const YachtLayer = () => {
 
             <mesh
               scale={[yacht.width * yachtScale * 1.12, imageHeight * 1.12, 1]}
-              renderOrder={490}
+              renderOrder={-1}
               frustumCulled={false}
             >
               <planeGeometry args={[1, 1]} />
@@ -605,7 +612,7 @@ const YachtLayer = () => {
                 opacity={0.18}
                 color="#ffd6a0"
                 depthWrite={false}
-                depthTest={false}
+                depthTest={true}
                 side={THREE.DoubleSide}
                 toneMapped={false}
               />
@@ -617,7 +624,7 @@ const YachtLayer = () => {
 
             <mesh
               scale={[yacht.width * yachtScale, imageHeight, 1]}
-              renderOrder={500}
+              renderOrder={0}
               frustumCulled={false}
             >
               <planeGeometry args={[1, 1]} />
@@ -628,7 +635,7 @@ const YachtLayer = () => {
                 opacity={0.92}
                 alphaTest={0.01}
                 depthWrite={false}
-                depthTest={false}
+                depthTest={true}
                 side={THREE.DoubleSide}
                 toneMapped={false}
                 color="#d4c7b5"
@@ -1153,20 +1160,22 @@ export const MonzaEnvironment = () => {
       {/* ☁️ Sunset clouds */}
       <CloudsLayer />
       {/* ☀️ SUN GLOW */}
-      <sprite position={[0, 10, -102]} scale={[90, 90, 1]} renderOrder={10000}>
+      <sprite position={[0, 10, -102]} scale={[58, 58, 1]} renderOrder={1000}>
         <spriteMaterial
           map={sunTexture}
           transparent
+          opacity={0.8}
           depthWrite={false}
           depthTest={false}
           toneMapped={false}
         />
       </sprite>
       {/* ☀️ SOLID SUN DISC */}
-      <sprite position={[0, 10, -143]} scale={[11, 11, 1]} renderOrder={-980}>
+      <sprite position={[0, 10, -143]} scale={[9, 9, 1]} renderOrder={-10}>
         <spriteMaterial
           map={sunDiscTexture}
           transparent
+          opacity={0.9}
           depthWrite={false}
           depthTest={false}
           toneMapped={false}

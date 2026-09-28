@@ -96,38 +96,38 @@ const GameScene = () => {
        * --------------------------------------------------------
        */
 
-      let dynamicObstacleSpeed = 15;
+      let dynamicObstacleSpeed = 11;
 
       if (newElapsedTime > 3) {
-        dynamicObstacleSpeed = 21;
+        dynamicObstacleSpeed = 15;
       }
 
       if (newElapsedTime > 6) {
-        dynamicObstacleSpeed = 26;
+        dynamicObstacleSpeed = 18;
       }
 
       if (newElapsedTime > 9) {
-        dynamicObstacleSpeed = 30;
+        dynamicObstacleSpeed = 22;
       }
 
       if (newElapsedTime > 12) {
-        dynamicObstacleSpeed = 35;
+        dynamicObstacleSpeed = 25;
       }
 
       if (newElapsedTime > 15) {
-        dynamicObstacleSpeed = 40;
+        dynamicObstacleSpeed = 28;
       }
 
       if (newElapsedTime > 18) {
-        dynamicObstacleSpeed = 45;
+        dynamicObstacleSpeed = 32;
       }
 
       if (newElapsedTime > 21) {
-        dynamicObstacleSpeed = 50;
+        dynamicObstacleSpeed = 35;
       }
 
       if (newElapsedTime > 24) {
-        dynamicObstacleSpeed = 55;
+        dynamicObstacleSpeed = 38;
       }
 
       /*
@@ -154,7 +154,7 @@ const GameScene = () => {
 
           score: currentScore + Math.round(pendingScoreRef.current),
 
-          speed: Math.round(180 + dynamicObstacleSpeed * 25),
+          speed: Math.round(150 + dynamicObstacleSpeed * 18),
         });
 
         pendingScoreRef.current = 0;
@@ -651,12 +651,9 @@ export const Game = () => {
       ====================================================== */}
 
       <div className="game-hud-responsive">
-        {phase === "playing" && (
-          <>
-            <HUD />
-            <PopUpMessages />
-          </>
-        )}
+        {phase === "playing" && <HUD />}
+
+        {(phase === "countdown" || phase === "playing") && <PopUpMessages />}
       </div>
 
       {/* ======================================================

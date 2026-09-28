@@ -81,7 +81,7 @@ export default function LoginScreen() {
               lineHeight: 1,
             }}
           >
-            DGG <span style={{ color: "#e10600" }}>F1</span>
+            <span style={{ color: "#e10600" }}>F1</span>
           </div>
 
           <div

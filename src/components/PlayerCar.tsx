@@ -170,7 +170,7 @@ export const PlayerCar = memo(() => {
       ctx.font = "bold 24px Arial";
       ctx.fillStyle = "#ffffff";
       ctx.fillText("GULF", 512, 200);
-      ctx.fillText("DGG", 800, 300);
+      ctx.fillText("F1", 800, 300);
 
       const texture = new THREE.CanvasTexture(canvas);
       largestMesh.material.map = texture;

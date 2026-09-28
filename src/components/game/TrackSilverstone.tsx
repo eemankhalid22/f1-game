@@ -221,7 +221,7 @@ const TrackSilverstone = () => {
         </mesh>
 
         {/* =====================================================
-    DGG GRID RUSH SIGN
+     GRID RUSH SIGN
 ===================================================== */}
 
         <group position={[0, 0, 0]} renderOrder={1000000}>
@@ -275,7 +275,7 @@ const TrackSilverstone = () => {
             material-depthWrite={false}
             material-toneMapped={false}
           >
-            DGG GRID RUSH
+            GRID RUSH
           </Text>
         </group>
       </group>

@@ -50,158 +50,78 @@ const TrackMonza = () => {
 
     return texture;
   }, []);
+  const asphaltMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        nearColor: {
+          value: new THREE.Color("#3A2924"),
+        },
 
-  /* =======================================================
-   ASPHALT TEXTURE
+        midColor: {
+          value: new THREE.Color("#5A3021"),
+        },
 
-   Dark asphalt with a static golden-hour sunset
-   reflection baked directly into the road texture.
-======================================================= */
+        farColor: {
+          value: new THREE.Color("#9A5128"),
+        },
+      },
 
-  const asphaltTexture = useMemo(() => {
-    const canvas = document.createElement("canvas");
+      vertexShader: `
+      varying float vDepth;
 
-    canvas.width = 512;
-    canvas.height = 512;
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
 
-    const ctx = canvas.getContext("2d");
+        vDepth = -mvPosition.z;
 
-    if (!ctx) {
-      return null;
-    }
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
 
-    /* =====================================================
-     BASE ASPHALT
-  ===================================================== */
+      fragmentShader: `
+  uniform vec3 nearColor;
+  uniform vec3 midColor;
+  uniform vec3 farColor;
 
-    ctx.fillStyle = "#302b29";
-    ctx.fillRect(0, 0, 512, 512);
+  varying float vDepth;
 
-    const sunsetGradient = ctx.createLinearGradient(0, 0, 0, 512);
+  void main() {
 
-    sunsetGradient.addColorStop(0.0, "rgba(232, 145, 62, 0.48)");
+    // Smooth transition from near → middle
+    float nearToMid = smoothstep(
+      5.0,
+      70.0,
+      vDepth
+    );
 
-    sunsetGradient.addColorStop(0.12, "rgba(205, 108, 40, 0.38)");
+    // Smooth transition from middle → far
+    float midToFar = smoothstep(
+      55.0,
+      130.0,
+      vDepth
+    );
 
-    sunsetGradient.addColorStop(0.28, "rgba(165, 76, 31, 0.28)");
+    // First blend: dark → warm brown
+    vec3 color = mix(
+      nearColor,
+      midColor,
+      nearToMid
+    );
 
-    sunsetGradient.addColorStop(0.48, "rgba(115, 55, 29, 0.18)");
+    // Second blend: warm brown → orange
+    color = mix(
+      color,
+      farColor,
+      midToFar
+    );
 
-    sunsetGradient.addColorStop(0.7, "rgba(65, 39, 29, 0.09)");
-
-    sunsetGradient.addColorStop(1.0, "rgba(30, 27, 26, 0.00)");
-
-    ctx.fillStyle = sunsetGradient;
-    ctx.fillRect(0, 0, 512, 512);
-
-    const centerGradient = ctx.createLinearGradient(0, 0, 512, 0);
-
-    centerGradient.addColorStop(0.0, "rgba(180, 90, 35, 0.00)");
-
-    centerGradient.addColorStop(0.2, "rgba(190, 96, 38, 0.04)");
-
-    centerGradient.addColorStop(0.38, "rgba(220, 130, 55, 0.12)");
-
-    centerGradient.addColorStop(0.5, "rgba(235, 150, 65, 0.18)");
-
-    centerGradient.addColorStop(0.62, "rgba(220, 130, 55, 0.12)");
-
-    centerGradient.addColorStop(0.8, "rgba(190, 96, 38, 0.04)");
-
-    centerGradient.addColorStop(1.0, "rgba(180, 90, 35, 0.00)");
-
-    ctx.fillStyle = centerGradient;
-    ctx.fillRect(0, 0, 512, 512);
-
-    for (let i = 0; i < 18; i++) {
-      const y = i * 28 + Math.random() * 14;
-
-      const bandGradient = ctx.createLinearGradient(0, y, 512, y);
-
-      bandGradient.addColorStop(0, "rgba(255, 170, 75, 0)");
-
-      bandGradient.addColorStop(0.35, "rgba(255, 170, 75, 0.025)");
-
-      bandGradient.addColorStop(0.5, "rgba(255, 190, 90, 0.05)");
-
-      bandGradient.addColorStop(0.65, "rgba(255, 170, 75, 0.025)");
-
-      bandGradient.addColorStop(1, "rgba(255, 170, 75, 0)");
-
-      ctx.fillStyle = bandGradient;
-
-      ctx.fillRect(0, y, 512, 2 + Math.random() * 2);
-    }
-
-    for (let i = 0; i < 18000; i++) {
-      const x = Math.random() * 512;
-      const y = Math.random() * 512;
-
-      const brightness = 32 + Math.random() * 24;
-
-      ctx.fillStyle = `rgba(
-      ${brightness + 8},
-      ${brightness},
-      ${brightness - 2},
-      0.28
-    )`;
-
-      const size = Math.random() * 1.4 + 0.25;
-
-      ctx.fillRect(x, y, size, size);
-    }
-
-    /* =====================================================
-     LONGITUDINAL ROAD VARIATION
-  ===================================================== */
-
-    for (let i = 0; i < 45; i++) {
-      const y = Math.random() * 512;
-
-      ctx.fillStyle = `rgba(
-      15,
-      13,
-      12,
-      ${0.025 + Math.random() * 0.035}
-    )`;
-
-      ctx.fillRect(0, y, 512, Math.random() * 2 + 0.5);
-    }
-
-    /* =====================================================
-     THREE.JS TEXTURE
-  ===================================================== */
-
-    const texture = new THREE.CanvasTexture(canvas);
-
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-
-    /*
-     IMPORTANT:
-
-     Keep the existing repeat.
-
-     The texture is attached to each TrackMonza
-     segment, so it automatically moves and repeats
-     with that segment.
-  */
-    texture.repeat.set(1, 1);
-
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = 8;
-
-    return texture;
+    gl_FragColor = vec4(color, 1.0);
+  }
+`,
+    });
   }, []);
-  /* =======================================================
-     TRACK
-  ======================================================= */
-
   return (
     <group>
-      {/* =====================================================
-          MAIN ASPHALT
-      ===================================================== */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, 0, TRACK_Z]}
@@ -210,12 +130,7 @@ const TrackMonza = () => {
       >
         <planeGeometry args={[14, TRACK_LENGTH]} />
 
-        <meshStandardMaterial
-          map={asphaltTexture ?? undefined}
-          color="#3a3431"
-          roughness={0.91}
-          metalness={0.01}
-        />
+        <primitive object={asphaltMaterial} attach="material" />
       </mesh>
       {[-2.25, -0.75, 0.75, 2.25].map((x, index) => (
         <mesh
@@ -365,7 +280,7 @@ const TrackMonza = () => {
       <TrackFence side={-1} />
       <TrackFence side={1} />
       {/* =========================================================
-    MONZA SUNSET — DGG GRID RUSH GANTRY
+    MONZA SUNSET —  FORMULA X GANTRY
 ========================================================= */}
       <group position={[0, 0, -60]} renderOrder={1000000}>
         {/* =======================================================
@@ -572,7 +487,7 @@ const TrackMonza = () => {
         </group>
 
         {/* =======================================================
-      DGG GRID RUSH
+       FORMULA X
   ======================================================= */}
 
         <Text
@@ -588,7 +503,7 @@ const TrackMonza = () => {
           material-depthWrite={false}
           material-toneMapped={false}
         >
-          DGG GRID RUSH
+          FORMULA X
         </Text>
 
         {/* =======================================================

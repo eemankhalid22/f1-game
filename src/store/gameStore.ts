@@ -28,7 +28,7 @@ interface GameActions {
   endGame: () => void;
   setSpeed: (speed: number) => void;
   setElapsedTime: (time: number) => void;
-  setPhase: (phase: "menu" | "playing" | "gameover") => void;
+  setPhase: (phase: "menu" | "countdown" | "playing" | "gameover") => void;
   setObstacleSpeed: (speed: number) => void;
   setPlayerLane: (lane: number) => void;
   setPlayerZ: (z: number) => void;
@@ -42,7 +42,7 @@ interface GameActions {
 
 type GameStore = GameState & GameActions;
 
-const INITIAL_SPEED = 400;
+const INITIAL_SPEED = 260;
 const INITIAL_LIVES = 5;
 const INITIAL_PLAYER_Z = 4;
 
@@ -67,13 +67,13 @@ export const useGameStore = create<GameStore>((set: any) => ({
 
   startGame: () =>
     set({
-      phase: "playing",
+      phase: "countdown",
       speed: INITIAL_SPEED,
       score: 0,
       lives: INITIAL_LIVES,
       dodgeCount: 0,
       elapsedTime: 0,
-      obstacleSpeed: 60,
+      obstacleSpeed: 40,
       playerLane: 1,
       playerZ: INITIAL_PLAYER_Z,
       position: 9,
@@ -115,7 +115,7 @@ export const useGameStore = create<GameStore>((set: any) => ({
       elapsedTime: time,
     }),
 
-  setPhase: (phase: "menu" | "playing" | "gameover") =>
+  setPhase: (phase: "menu" | "countdown" | "playing" | "gameover") =>
     set({
       phase,
     }),

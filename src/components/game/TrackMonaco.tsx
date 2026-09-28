@@ -3,7 +3,7 @@ import * as THREE from "three";
 import React from "react";
 
 export const TrackMonaco = React.memo(() => {
-  // DGG banner texture
+  //  banner texture
   const bannerTexture = useMemo(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 512;
@@ -26,12 +26,12 @@ export const TrackMonaco = React.memo(() => {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    ctx.fillText("DGG GRID RUSH", 256, 64);
+    ctx.fillText(" FORMULA X", 256, 64);
 
     // Glow
     ctx.shadowColor = "#ff00ff";
     ctx.shadowBlur = 20;
-    ctx.fillText("DGG GRID RUSH", 256, 64);
+    ctx.fillText(" FORMULA X", 256, 64);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
@@ -305,7 +305,7 @@ export const TrackMonaco = React.memo(() => {
       ))}
 
       {/* ========================= */}
-      {/* DGG GANTRY */}
+      {/*  GANTRY */}
       {/* ========================= */}
 
       <group position={[0, 0, -60]}>
