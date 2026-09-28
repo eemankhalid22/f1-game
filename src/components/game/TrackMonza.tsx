@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { Text } from "@react-three/drei";
 
 const TRACK_LENGTH = 400;
 const TRACK_Z = -80;
