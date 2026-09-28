@@ -8,6 +8,18 @@ const TRACK_LENGTH = 400;
 const TRACK_Z = -80;
 
 const TrackMonza = () => {
+  const bannerTexture = useMemo(() => {
+    const texture = new THREE.TextureLoader().load(
+      "/assets/formula-x-banner.png",
+    );
+
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.needsUpdate = true;
+
+    return texture;
+  }, []);
   /* =======================================================
      KERB TEXTURE
   ======================================================= */
@@ -292,8 +304,8 @@ const TrackMonza = () => {
 
           <meshBasicMaterial
             color="#211c20"
-            depthTest={false}
-            depthWrite={false}
+            depthTest={true}
+            depthWrite={true}
             toneMapped={false}
           />
         </mesh>
@@ -307,8 +319,8 @@ const TrackMonza = () => {
 
           <meshBasicMaterial
             color="#211c20"
-            depthTest={false}
-            depthWrite={false}
+            depthTest={true}
+            depthWrite={true}
             toneMapped={false}
           />
         </mesh>
@@ -322,223 +334,20 @@ const TrackMonza = () => {
 
           <meshBasicMaterial
             color="#211c20"
-            depthTest={false}
-            depthWrite={false}
+            depthTest={true}
+            depthWrite={true}
             toneMapped={false}
           />
         </mesh>
 
         {/* =======================================================
-      ORANGE SUNSET TOP STRIPE
-  ======================================================= */}
+    FORMULA X BANNER
+======================================================= */}
 
-        <mesh position={[0, 8.36, 0.02]} renderOrder={1000002}>
-          <boxGeometry args={[14.45, 0.07, 0.44]} />
-
-          <meshBasicMaterial
-            color="#ff6b32"
-            depthTest={false}
-            depthWrite={false}
-            toneMapped={false}
-          />
+        <mesh position={[0, 7.2, 0]} renderOrder={1000001}>
+          <planeGeometry args={[12, 2]} />
+          <meshBasicMaterial map={bannerTexture} />
         </mesh>
-
-        {/* =======================================================
-      RED LOWER ACCENT
-  ======================================================= */}
-
-        <mesh position={[0, 6.28, 0.05]} renderOrder={1000002}>
-          <planeGeometry args={[13.7, 0.07]} />
-
-          <meshBasicMaterial
-            color="#e52b24"
-            depthTest={false}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-
-        {/* =======================================================
-      MAIN BANNER
-  ======================================================= */}
-
-        <mesh position={[0, 7.28, 0]} renderOrder={1000003}>
-          <planeGeometry args={[13.8, 1.9]} />
-
-          <meshBasicMaterial
-            color="#c7b9a8"
-            side={THREE.DoubleSide}
-            transparent
-            opacity={1}
-            depthTest={false}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-
-        {/* =======================================================
-      INNER BANNER PANEL
-  ======================================================= */}
-
-        <mesh position={[0, 7.28, 0.03]} renderOrder={1000004}>
-          <planeGeometry args={[13.25, 1.48]} />
-
-          <meshBasicMaterial
-            color="#f2e8d8"
-            side={THREE.DoubleSide}
-            transparent
-            opacity={1}
-            depthTest={false}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-
-        {/* =======================================================
-      LEFT RED CHECKER ACCENTS
-  ======================================================= */}
-
-        <group renderOrder={1000005}>
-          <mesh position={[-5.95, 7.68, 0.06]}>
-            <planeGeometry args={[0.28, 0.28]} />
-            <meshBasicMaterial
-              color="#e52b24"
-              depthTest={false}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-
-          <mesh position={[-5.63, 7.68, 0.06]}>
-            <planeGeometry args={[0.28, 0.28]} />
-            <meshBasicMaterial
-              color="#e52b24"
-              depthTest={false}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-
-          <mesh position={[-5.79, 7.38, 0.06]}>
-            <planeGeometry args={[0.28, 0.28]} />
-            <meshBasicMaterial
-              color="#e52b24"
-              depthTest={false}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-
-          <mesh position={[-5.47, 7.38, 0.06]}>
-            <planeGeometry args={[0.28, 0.28]} />
-            <meshBasicMaterial
-              color="#e52b24"
-              depthTest={false}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-        </group>
-
-        {/* =======================================================
-      RIGHT RED CHECKER ACCENTS
-  ======================================================= */}
-
-        <group renderOrder={1000005}>
-          <mesh position={[5.95, 7.68, 0.06]}>
-            <planeGeometry args={[0.28, 0.28]} />
-            <meshBasicMaterial
-              color="#e52b24"
-              depthTest={false}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-
-          <mesh position={[5.63, 7.68, 0.06]}>
-            <planeGeometry args={[0.28, 0.28]} />
-            <meshBasicMaterial
-              color="#e52b24"
-              depthTest={false}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-
-          <mesh position={[5.79, 7.38, 0.06]}>
-            <planeGeometry args={[0.28, 0.28]} />
-            <meshBasicMaterial
-              color="#e52b24"
-              depthTest={false}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-
-          <mesh position={[5.47, 7.38, 0.06]}>
-            <planeGeometry args={[0.28, 0.28]} />
-            <meshBasicMaterial
-              color="#e52b24"
-              depthTest={false}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-        </group>
-
-        {/* =======================================================
-       FORMULA X
-  ======================================================= */}
-
-        <Text
-          position={[0, 7.3, 0.1]}
-          fontSize={0.78}
-          color="#292126"
-          anchorX="center"
-          anchorY="middle"
-          fontWeight="900"
-          letterSpacing={0.025}
-          renderOrder={1000006}
-          material-depthTest={false}
-          material-depthWrite={false}
-          material-toneMapped={false}
-        >
-          FORMULA X
-        </Text>
-
-        {/* =======================================================
-      RED TEXT ACCENT / UNDERLINE
-  ======================================================= */}
-
-        <mesh position={[0, 6.67, 0.08]} renderOrder={1000007}>
-          <planeGeometry args={[4.8, 0.045]} />
-
-          <meshBasicMaterial
-            color="#e52b24"
-            depthTest={false}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-
-        {/* START LIGHTS */}
-        {[-4.5, -3, -1.5, 0, 1.5, 3, 4.5].map((x, i) => (
-          <mesh
-            key={`start-light-${i}`}
-            position={[x, 7.15, 0.025]}
-            renderOrder={100004}
-          >
-            <sphereGeometry args={[0.16, 12, 12]} />
-
-            <meshStandardMaterial
-              color={i % 2 === 0 ? "#8d1717" : "#651515"}
-              emissive={i % 2 === 0 ? "#4d0808" : "#260404"}
-              emissiveIntensity={0.8}
-              depthTest={false}
-              depthWrite={false}
-            />
-          </mesh>
-        ))}
       </group>
       {/* =====================================================
           LANE MARKINGS

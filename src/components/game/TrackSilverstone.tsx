@@ -2,11 +2,23 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { Text } from "@react-three/drei";
 
 type Vec3 = [number, number, number];
 
 const TrackSilverstone = () => {
+  const bannerTexture = useMemo(() => {
+    const texture = new THREE.TextureLoader().load(
+      "/assets/formula-x-banner.png",
+    );
+
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.needsUpdate = true;
+
+    return texture;
+  }, []);
+
   const kerbTexture = useMemo(() => {
     const canvas = document.createElement("canvas");
 
@@ -221,63 +233,13 @@ const TrackSilverstone = () => {
         </mesh>
 
         {/* =====================================================
-     GRID RUSH SIGN
+    FORMULA X BANNER
 ===================================================== */}
 
-        <group position={[0, 0, 0]} renderOrder={1000000}>
-          {/* Main sign */}
-          <mesh position={[0, 7.15, 0]} renderOrder={1000000}>
-            <planeGeometry args={[11.5, 1.8]} />
-
-            <meshBasicMaterial color="#e8e8e2" toneMapped={false} />
-          </mesh>
-
-          {/* =======================================================
-      INNER LIGHT PANEL
-  ======================================================= */}
-
-          <mesh position={[0, 7.15, 0.02]} renderOrder={1000001}>
-            <planeGeometry args={[10.7, 1.2]} />
-
-            <meshBasicMaterial color="#f1eee4" toneMapped={false} />
-          </mesh>
-
-          {/* =======================================================
-      TOP RED STRIPE
-  ======================================================= */}
-
-          <mesh position={[0, 7.88, 0.04]} renderOrder={1000002}>
-            <planeGeometry args={[11.2, 0.06]} />
-
-            <meshBasicMaterial color="#d71920" toneMapped={false} />
-          </mesh>
-
-          {/* =======================================================
-      BOTTOM RED STRIPE
-  ======================================================= */}
-
-          <mesh position={[0, 6.42, 0.04]} renderOrder={1000002}>
-            <planeGeometry args={[11.2, 0.06]} />
-
-            <meshBasicMaterial color="#d71920" toneMapped={false} />
-          </mesh>
-
-          <Text
-            position={[0, 7.15, 0.08]}
-            fontSize={0.62}
-            color="#1a1a1a"
-            anchorX="center"
-            anchorY="middle"
-            fontWeight="900"
-            letterSpacing={0.025}
-            renderOrder={1000003}
-            material-depthTest={false}
-            material-depthWrite={false}
-            material-toneMapped={false}
-          >
-            GRID RUSH
-          </Text>
-        </group>
+        <mesh position={[0, 7.2, 0]}>
+          <planeGeometry args={[12, 2]} />
+          <meshBasicMaterial map={bannerTexture} />
+        </mesh>
       </group>
     </group>
   );

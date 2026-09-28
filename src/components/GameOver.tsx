@@ -65,7 +65,7 @@ export const GameOver = React.memo(() => {
 
         <div className="flex h-9 items-center bg-[#e10600] px-5">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-black italic text-white">DGG</span>
+            <span className="text-xs font-black italic text-white">F1</span>
 
             <span className="h-3.5 w-px bg-white/40" />
 

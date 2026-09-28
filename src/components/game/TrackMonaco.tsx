@@ -3,37 +3,14 @@ import * as THREE from "three";
 import React from "react";
 
 export const TrackMonaco = React.memo(() => {
-  //  banner texture
   const bannerTexture = useMemo(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 128;
+    const texture = new THREE.TextureLoader().load(
+      "/assets/formula-x-banner.png",
+    );
 
-    const ctx = canvas.getContext("2d")!;
-
-    // Dark background
-    ctx.fillStyle = "#1a0030";
-    ctx.fillRect(0, 0, 512, 128);
-
-    // Neon border
-    ctx.strokeStyle = "#ff00ff";
-    ctx.lineWidth = 4;
-    ctx.strokeRect(4, 4, 504, 120);
-
-    // Text
-    ctx.font = "bold 48px Arial";
-    ctx.fillStyle = "#00ffff";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.fillText(" FORMULA X", 256, 64);
-
-    // Glow
-    ctx.shadowColor = "#ff00ff";
-    ctx.shadowBlur = 20;
-    ctx.fillText(" FORMULA X", 256, 64);
-
-    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
     texture.needsUpdate = true;
 
     return texture;

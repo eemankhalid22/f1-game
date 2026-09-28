@@ -301,10 +301,10 @@ const LakeLayer = () => {
   const lakeShape = useMemo(() => {
     const shape = new THREE.Shape();
 
-    shape.moveTo(-220, 30); // Top-left
-    shape.lineTo(160, 30); // Top-right
-    shape.lineTo(160, -30); // Bottom point
-
+    shape.moveTo(-320, -70); // bottom-left
+    shape.lineTo(320, -70); // bottom-right
+    shape.lineTo(320, 40); // top-right
+    shape.lineTo(-320, 40); // top-left
     shape.closePath();
 
     return shape;
@@ -504,6 +504,7 @@ const YachtLayer = () => {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
   const yachtRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const backgroundYachtRefs = useRef<(THREE.Group | null)[]>([]);
   const { size } = useThree();
   const isMobile = size.width < 700;
 
@@ -550,7 +551,26 @@ const YachtLayer = () => {
       phase: Math.PI,
     },
   ];
-
+  const backgroundYachts = [
+    {
+      x: -30,
+      y: 2,
+      z: -238,
+      width: 5,
+    },
+    {
+      x: 25,
+      y: 2,
+      z: -242,
+      width: 4.5,
+    },
+    {
+      x: 70,
+      y: 2,
+      z: -238,
+      width: 5,
+    },
+  ];
   // =====================================================
   // 🌊 STRONG YACHT MOVEMENT
   // =====================================================
@@ -558,12 +578,17 @@ const YachtLayer = () => {
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
 
+    // ==========================================
+    // MAIN YACHTS
+    // ==========================================
+
     yachtRefs.current.forEach((yacht, index) => {
       if (!yacht) return;
 
       const data = yachts[index];
 
       yacht.position.x = data.x + Math.sin(time * 0.35 + data.phase) * movement;
+
       yacht.position.y =
         data.y +
         Math.sin(time * 1.1 + data.phase) * 1.2 +
@@ -571,10 +596,22 @@ const YachtLayer = () => {
 
       yacht.position.z =
         data.z + Math.sin(time * 0.28 + data.phase) * depthMovement;
+
       yacht.rotation.z = Math.sin(time * 0.9 + data.phase) * 0.06;
 
-      // Slight pitch movement
       yacht.rotation.x = Math.sin(time * 0.65 + data.phase) * 0.025;
+    });
+
+    // ==========================================
+    // BACKGROUND YACHTS — LEFT / RIGHT ONLY
+    // ==========================================
+
+    backgroundYachtRefs.current.forEach((yacht, index) => {
+      if (!yacht) return;
+
+      const data = backgroundYachts[index];
+
+      yacht.position.x = data.x + Math.sin(time * 0.25 + index) * 8;
     });
   });
 
@@ -639,6 +676,43 @@ const YachtLayer = () => {
                 side={THREE.DoubleSide}
                 toneMapped={false}
                 color="#d4c7b5"
+              />
+            </mesh>
+          </group>
+        );
+      })}
+      {/* ==========================================
+    MANUALLY POSITIONED BACKGROUND YACHTS
+========================================== */}
+
+      {backgroundYachts.map((yacht, index) => {
+        const imageHeight = yacht.width / imageAspect;
+
+        return (
+          <group
+            key={`background-yacht-${index}`}
+            ref={(ref) => {
+              backgroundYachtRefs.current[index] = ref;
+            }}
+            position={[yacht.x, yacht.y + imageHeight / 2, yacht.z]}
+          >
+            <mesh
+              scale={[yacht.width, imageHeight, 1]}
+              renderOrder={-1000}
+              frustumCulled={false}
+            >
+              <planeGeometry args={[1, 1]} />
+
+              <meshBasicMaterial
+                map={texture}
+                transparent
+                opacity={1}
+                alphaTest={0.05}
+                depthWrite={false}
+                depthTest={true}
+                side={THREE.DoubleSide}
+                toneMapped={false}
+                color="#33333a"
               />
             </mesh>
           </group>
@@ -1160,24 +1234,24 @@ export const MonzaEnvironment = () => {
       {/* ☁️ Sunset clouds */}
       <CloudsLayer />
       {/* ☀️ SUN GLOW */}
-      <sprite position={[0, 10, -102]} scale={[58, 58, 1]} renderOrder={1000}>
+      <sprite position={[0, 12, -102]} scale={[58, 58, 1]} renderOrder={1000}>
         <spriteMaterial
           map={sunTexture}
           transparent
           opacity={0.8}
           depthWrite={false}
-          depthTest={false}
+          depthTest={true}
           toneMapped={false}
         />
       </sprite>
       {/* ☀️ SOLID SUN DISC */}
-      <sprite position={[0, 10, -143]} scale={[9, 9, 1]} renderOrder={-10}>
+      <sprite position={[0, 13, -143]} scale={[9, 9, 1]} renderOrder={-10000}>
         <spriteMaterial
           map={sunDiscTexture}
           transparent
           opacity={0.9}
-          depthWrite={false}
-          depthTest={false}
+          depthWrite={true}
+          depthTest={true}
           toneMapped={false}
         />
       </sprite>
