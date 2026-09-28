@@ -1,326 +1,366 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { supabase } from "../../lib/supabase";
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState("");
+type Mode = "login" | "register";
+
+export const LoginScreen = React.memo(() => {
+  const [mode, setMode] = useState<Mode>("login");
+
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isRegistering, setIsRegistering] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState("");
 
+  // ------------------------------------------------------------
+  // Convert username into an internal email for Supabase Auth
+  // ------------------------------------------------------------
+  const getInternalEmail = (value: string) => {
+    return `${value.trim().toLowerCase()}@f1.local`;
+  };
+
+  // ------------------------------------------------------------
+  // Submit
+  // ------------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setLoading(true);
     setError("");
-    setMessage("");
+    setSuccess("");
 
-    if (isRegistering) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+    const cleanUsername = username.trim().toLowerCase();
 
-      if (error) {
-        setError(error.message);
-      } else {
-        setMessage(
-          "Account created! Check your email if confirmation is required.",
-        );
-      }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-      }
+    // Username validation
+    if (!cleanUsername) {
+      setError("Please enter a username.");
+      return;
     }
 
-    setLoading(false);
+    if (cleanUsername.length < 3) {
+      setError("Username must be at least 3 characters.");
+      return;
+    }
+
+    if (cleanUsername.length > 20) {
+      setError("Username must be 20 characters or less.");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
+      setError("Username can only contain letters, numbers and underscores.");
+      return;
+    }
+
+    // Password validation
+    if (!password) {
+      setError("Please enter a password.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const internalEmail = getInternalEmail(cleanUsername);
+
+      // ==========================================================
+      // REGISTER
+      // ==========================================================
+      if (mode === "register") {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: internalEmail,
+          password,
+          options: {
+            data: {
+              username: cleanUsername,
+            },
+          },
+        });
+
+        if (signUpError) {
+          throw signUpError;
+        }
+
+        if (!data.user) {
+          throw new Error("Unable to create account.");
+        }
+
+        setSuccess("Account created successfully.");
+
+        setUsername("");
+        setPassword("");
+
+        // Because email confirmation is disabled,
+        // Supabase should automatically create the session.
+        return;
+      }
+
+      // ==========================================================
+      // LOGIN
+      // ==========================================================
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: internalEmail,
+        password,
+      });
+
+      if (signInError) {
+        throw signInError;
+      }
+    } catch (err: any) {
+      console.error("Authentication error:", err);
+
+      if (err?.message?.toLowerCase().includes("invalid login credentials")) {
+        setError("Invalid username or password.");
+      } else if (err?.message?.toLowerCase().includes("already registered")) {
+        setError("That username is already taken.");
+      } else {
+        setError(err?.message || "Something went wrong.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        background: "#050505",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "40px 20px",
-        boxSizing: "border-box",
-        color: "#ffffff",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "430px",
-        }}
-      >
-        {/* LOGO */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#080808] px-4">
+      {/* =========================================================
+          BACKGROUND
+      ========================================================= */}
+      <div className="pointer-events-none absolute inset-0">
+        {/* Horizontal lines */}
         <div
+          className="absolute inset-0 opacity-[0.035]"
           style={{
-            textAlign: "center",
-            marginBottom: "35px",
+            backgroundImage:
+              "linear-gradient(to bottom, white 1px, transparent 1px)",
+            backgroundSize: "100% 36px",
           }}
-        >
-          <div
-            style={{
-              fontSize: "48px",
-              fontWeight: 900,
-              fontStyle: "italic",
-              letterSpacing: "4px",
-              color: "#ffffff",
-              lineHeight: 1,
-            }}
-          >
-            <span style={{ color: "#e10600" }}>F1</span>
+        />
+
+        {/* Diagonal texture */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 1px, transparent 6px)",
+          }}
+        />
+
+        {/* Red glow */}
+        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#e10600]/10 blur-[150px]" />
+      </div>
+
+      {/* =========================================================
+          LOGIN PANEL
+      ========================================================= */}
+      <div className="relative w-full max-w-sm">
+        {/* Header */}
+        <div className="mb-5">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="h-1.5 w-1.5 bg-[#e10600]" />
+
+            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/40">
+              Formula Racing
+            </span>
+
+            <div className="h-px flex-1 bg-white/10" />
           </div>
 
-          <div
-            style={{
-              marginTop: "10px",
-              fontSize: "12px",
-              letterSpacing: "6px",
-              color: "#777777",
-              textTransform: "uppercase",
-            }}
-          >
-            Racing
-          </div>
-        </div>
+          <h1 className="text-4xl font-black uppercase italic leading-none tracking-[-0.05em] text-white">
+            {mode === "login" ? (
+              <>
+                Welcome
+                <br />
+                <span className="text-[#e10600]">Back</span>
+              </>
+            ) : (
+              <>
+                Create
+                <br />
+                <span className="text-[#e10600]">Driver</span>
+              </>
+            )}
+          </h1>
 
-        {/* CARD */}
-        <div
-          style={{
-            background: "#0d0d0d",
-            border: "1px solid #242424",
-            borderRadius: "16px",
-            padding: "32px",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
-          }}
-        >
-          <h2
-            style={{
-              margin: "0 0 8px 0",
-              color: "#ffffff",
-              fontSize: "26px",
-              fontWeight: 700,
-            }}
-          >
-            {isRegistering ? "Create Account" : "Welcome Back"}
-          </h2>
-
-          <p
-            style={{
-              margin: "0 0 28px 0",
-              color: "#888888",
-              fontSize: "14px",
-            }}
-          >
-            {isRegistering
-              ? "Create an account to save your race progress."
-              : "Sign in to continue racing."}
+          <p className="mt-2 text-[8px] uppercase tracking-[0.16em] text-white/30">
+            {mode === "login"
+              ? "Enter the grid"
+              : "Create your racing identity"}
           </p>
-
-          <form
-            onSubmit={handleSubmit}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "18px",
-            }}
-          >
-            {/* EMAIL */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  color: "#cccccc",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  marginBottom: "8px",
-                }}
-              >
-                EMAIL
-              </label>
-
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={{
-                  width: "100%",
-                  height: "48px",
-                  boxSizing: "border-box",
-                  padding: "0 14px",
-                  background: "#161616",
-                  border: "1px solid #333333",
-                  borderRadius: "8px",
-                  color: "#ffffff",
-                  fontSize: "15px",
-                  outline: "none",
-                }}
-              />
-            </div>
-
-            {/* PASSWORD */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  color: "#cccccc",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  marginBottom: "8px",
-                }}
-              >
-                PASSWORD
-              </label>
-
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                style={{
-                  width: "100%",
-                  height: "48px",
-                  boxSizing: "border-box",
-                  padding: "0 14px",
-                  background: "#161616",
-                  border: "1px solid #333333",
-                  borderRadius: "8px",
-                  color: "#ffffff",
-                  fontSize: "15px",
-                  outline: "none",
-                }}
-              />
-            </div>
-
-            {/* ERROR */}
-            {error && (
-              <div
-                style={{
-                  padding: "12px",
-                  borderRadius: "8px",
-                  background: "rgba(225, 6, 0, 0.12)",
-                  border: "1px solid rgba(225, 6, 0, 0.35)",
-                  color: "#ff4d4d",
-                  fontSize: "13px",
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            {/* SUCCESS */}
-            {message && (
-              <div
-                style={{
-                  padding: "12px",
-                  borderRadius: "8px",
-                  background: "rgba(0, 180, 100, 0.12)",
-                  border: "1px solid rgba(0, 180, 100, 0.35)",
-                  color: "#4ade80",
-                  fontSize: "13px",
-                }}
-              >
-                {message}
-              </div>
-            )}
-
-            {/* SUBMIT */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%",
-                height: "50px",
-                marginTop: "4px",
-                border: "none",
-                borderRadius: "8px",
-                background: loading ? "#555555" : "#e10600",
-                color: "#ffffff",
-                fontSize: "14px",
-                fontWeight: 800,
-                letterSpacing: "1px",
-                cursor: loading ? "not-allowed" : "pointer",
-              }}
-            >
-              {loading
-                ? "PLEASE WAIT..."
-                : isRegistering
-                  ? "CREATE ACCOUNT"
-                  : "LOGIN"}
-            </button>
-          </form>
-
-          {/* REGISTER / LOGIN */}
-          <div
-            style={{
-              marginTop: "25px",
-              paddingTop: "22px",
-              borderTop: "1px solid #222222",
-              textAlign: "center",
-            }}
-          >
-            <p
-              style={{
-                margin: "0 0 8px 0",
-                color: "#777777",
-                fontSize: "13px",
-              }}
-            >
-              {isRegistering
-                ? "Already have an account?"
-                : "Don't have an account?"}
-            </p>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegistering(!isRegistering);
-                setError("");
-                setMessage("");
-              }}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#e10600",
-                fontSize: "13px",
-                fontWeight: 700,
-                cursor: "pointer",
-                padding: "5px",
-              }}
-            >
-              {isRegistering ? "LOGIN INSTEAD" : "CREATE AN ACCOUNT"}
-            </button>
-          </div>
         </div>
 
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "20px",
-            color: "#555555",
-            fontSize: "11px",
-          }}
+        {/* =======================================================
+            FORM
+        ======================================================= */}
+        <form
+          onSubmit={handleSubmit}
+          className="border border-white/10 bg-white/[0.025] p-4 sm:p-5"
         >
-          Your race progress will be saved to your account.
-        </p>
+          {/* Username */}
+          <div className="mb-3">
+            <label className="mb-1.5 block text-[7px] font-bold uppercase tracking-[0.18em] text-white/40">
+              Username
+            </label>
+
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setError("");
+                setSuccess("");
+              }}
+              placeholder="ENTER USERNAME"
+              autoComplete="username"
+              maxLength={20}
+              disabled={loading}
+              className="
+                h-10
+                w-full
+                border
+                border-white/10
+                bg-black/40
+                px-3
+                text-[10px]
+                font-bold
+                uppercase
+                tracking-[0.1em]
+                text-white
+                outline-none
+                placeholder:text-white/15
+                focus:border-[#e10600]
+                disabled:opacity-50
+              "
+            />
+          </div>
+
+          {/* Password */}
+          <div className="mb-4">
+            <label className="mb-1.5 block text-[7px] font-bold uppercase tracking-[0.18em] text-white/40">
+              Password
+            </label>
+
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+                setSuccess("");
+              }}
+              placeholder="ENTER PASSWORD"
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
+              disabled={loading}
+              className="
+                h-10
+                w-full
+                border
+                border-white/10
+                bg-black/40
+                px-3
+                text-[10px]
+                font-bold
+                tracking-[0.1em]
+                text-white
+                outline-none
+                placeholder:text-white/15
+                focus:border-[#e10600]
+                disabled:opacity-50
+              "
+            />
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-3 border border-[#e10600]/30 bg-[#e10600]/10 px-3 py-2">
+              <p className="text-[8px] font-bold uppercase tracking-[0.08em] text-[#e10600]">
+                {error}
+              </p>
+            </div>
+          )}
+
+          {/* Success */}
+          {success && (
+            <div className="mb-3 border border-green-500/20 bg-green-500/10 px-3 py-2">
+              <p className="text-[8px] font-bold uppercase tracking-[0.08em] text-green-400">
+                {success}
+              </p>
+            </div>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="
+              flex
+              h-11
+              w-full
+              items-center
+              justify-between
+              bg-[#e10600]
+              px-4
+              text-white
+              transition
+              hover:bg-[#b80500]
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
+          >
+            <span className="text-[9px] font-black uppercase tracking-[0.15em]">
+              {loading
+                ? "Please Wait..."
+                : mode === "login"
+                  ? "Enter Grid"
+                  : "Create Account"}
+            </span>
+
+            <span className="text-lg font-black">→</span>
+          </button>
+        </form>
+
+        {/* =======================================================
+            SWITCH MODE
+        ======================================================= */}
+        <div className="mt-3 text-center">
+          <span className="text-[7px] uppercase tracking-[0.12em] text-white/25">
+            {mode === "login"
+              ? "Don't have a driver account?"
+              : "Already have a driver account?"}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => {
+              setMode(mode === "login" ? "register" : "login");
+              setError("");
+              setSuccess("");
+              setPassword("");
+            }}
+            className="ml-2 text-[7px] font-black uppercase tracking-[0.12em] text-[#e10600] hover:text-white"
+          >
+            {mode === "login" ? "Register" : "Login"}
+          </button>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-5 flex items-center justify-center gap-2">
+          <div className="h-px w-8 bg-white/10" />
+
+          <span className="text-[6px] uppercase tracking-[0.2em] text-white/15">
+            formula X
+          </span>
+
+          <div className="h-px w-8 bg-white/10" />
+        </div>
       </div>
     </div>
   );
-}
+});

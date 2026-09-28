@@ -7,7 +7,7 @@ import { useGameStore } from "./store/gameStore";
 import { Game } from "./components/Game";
 import { StartScreen } from "./components/StartScreen";
 import { GameOver } from "./components/GameOver";
-import LoginScreen from "./components/auth/LoginScreen";
+import { LoginScreen } from "./components/auth/LoginScreen";
 
 export default function App() {
   const phase = useGameStore((state: any) => state.phase);
